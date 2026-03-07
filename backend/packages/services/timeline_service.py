@@ -9,7 +9,6 @@ from packages.models.user import UserStatus
 from packages.repositories.post_repository import PostRepository
 from packages.repositories.user_repository import UserRepository
 from packages.services.like_service import LikeService
-from packages.services.bookmark_service import BookmarkService
 
 
 class TimelineService:
@@ -17,7 +16,6 @@ class TimelineService:
         self.post_repository = PostRepository(session)
         self.user_repository = UserRepository(session)
         self.like_service = LikeService(session)
-        self.bookmark_service = BookmarkService(session)
 
     async def get_timeline(
         self,
@@ -94,10 +92,8 @@ class TimelineService:
             # いいね状態を追加
             if current_user_id:
                 post_dict["is_liked"] = await self.like_service.is_liked(current_user_id, post.id)
-                post_dict["is_bookmarked"] = await self.bookmark_service.is_bookmarked(current_user_id, post.id)
             else:
                 post_dict["is_liked"] = False
-                post_dict["is_bookmarked"] = False
 
             result.append(post_dict)
 

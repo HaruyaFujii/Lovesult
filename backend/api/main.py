@@ -13,11 +13,8 @@ from api.features.follows.router import router as follows_router
 from api.features.likes.router import router as likes_router
 from api.features.notifications.router import router as notifications_router
 from api.features.reports import router as reports_router
-from api.features.bookmarks.router import router as bookmarks_router
 from api.features.search.router import router as search_router
 from api.features.account.router import router as account_router
-from api.features.personality.router import router as personality_router
-from api.features.messages.router import router as messages_router
 
 settings = get_settings()
 
@@ -57,8 +54,5 @@ app.include_router(follows_router, prefix="/api/v1")
 app.include_router(likes_router, prefix="/api/v1")
 app.include_router(notifications_router, prefix="/api/v1")
 app.include_router(reports_router, prefix="/api/v1")
-app.include_router(bookmarks_router, prefix="/api/v1")
 app.include_router(search_router, prefix="/api/v1")
 app.include_router(account_router, prefix="/api/v1")
-app.include_router(personality_router, prefix="/api/v1")
-app.include_router(messages_router, prefix="/api/v1")

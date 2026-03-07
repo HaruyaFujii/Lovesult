@@ -10,14 +10,12 @@ from packages.models.post import Post
 from packages.repositories.post_repository import PostRepository
 from packages.services.content_filter_service import ContentFilterService
 from packages.services.like_service import LikeService
-from packages.services.bookmark_service import BookmarkService
 
 
 class PostService:
     def __init__(self, session: AsyncSession):
         self.repository = PostRepository(session)
         self.like_service = LikeService(session)
-        self.bookmark_service = BookmarkService(session)
 
     async def create_post(self, user_id: UUID, content: str) -> Post:
         # コンテンツフィルタリング - temporarily disabled due to banned_words table schema issue
@@ -69,10 +67,8 @@ class PostService:
         # いいね状態を追加
         if current_user_id:
             post_dict["is_liked"] = await self.like_service.is_liked(current_user_id, post_id)
-            post_dict["is_bookmarked"] = await self.bookmark_service.is_bookmarked(current_user_id, post_id)
         else:
             post_dict["is_liked"] = False
-            post_dict["is_bookmarked"] = False
 
         return post_dict
 
@@ -131,11 +127,9 @@ class PostService:
             # いいね状態を追加
             if current_user_id:
                 post_dict["is_liked"] = await self.like_service.is_liked(current_user_id, post.id)
-                post_dict["is_bookmarked"] = await self.bookmark_service.is_bookmarked(current_user_id, post.id)
             else:
                 post_dict["is_liked"] = False
-                post_dict["is_bookmarked"] = False
-
+    
             result.append(post_dict)
 
         return result, next_cursor

@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from packages.models.user import UserStatus, Gender, AgeRange
     from packages.models.like import Like
     from packages.models.report import Report
-    from packages.models.bookmark import Bookmark
+    # from packages.models.bookmark import Bookmark
 
 
 class PostBase(SQLModel):
@@ -44,4 +44,4 @@ class Post(PostBase, table=True):
             "cascade": "all, delete-orphan"
         }
     )
-    bookmarks: List["Bookmark"] = Relationship(back_populates="post")
+    # bookmarks: List["Bookmark"] = Relationship(back_populates="post")

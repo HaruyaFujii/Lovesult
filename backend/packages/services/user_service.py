@@ -6,9 +6,8 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from packages.models.user import User, UserBase
+from packages.models.user import User, UserBase, UserStatus, AgeRange
 from packages.models.post import Post
-from packages.models.personality import Personality
 from packages.repositories.user_repository import UserRepository
 
 
@@ -29,8 +28,8 @@ class UserService:
             id=user_id,
             email=email,
             nickname="User",
-            status="seeking",
-            age_range="20s",
+            status=UserStatus.SEEKING,
+            age_range=AgeRange.TWENTIES,
         )
         created_user = await self.repository.create(new_user)
         await self.repository.session.commit()

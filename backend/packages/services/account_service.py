@@ -9,7 +9,6 @@ from packages.models.post import Post
 from packages.models.reply import Reply
 from packages.models.follow import Follow
 from packages.models.like import Like
-from packages.models.bookmark import Bookmark
 from packages.models.notification import Notification
 from packages.models.report import Report
 
@@ -41,10 +40,6 @@ class AccountService:
                     delete(Like).where(Like.user_id == user_id)
                 )
 
-                # ブックマークを削除
-                await self.session.execute(
-                    delete(Bookmark).where(Bookmark.user_id == user_id)
-                )
 
                 # フォロー関係を削除
                 await self.session.execute(
@@ -55,9 +50,7 @@ class AccountService:
 
                 # 通知を削除
                 await self.session.execute(
-                    delete(Notification).where(
-                        (Notification.user_id == user_id) | (Notification.actor_id == user_id)
-                    )
+                    delete(Notification).where(Notification.user_id == user_id)
                 )
 
                 # レポートを削除（報告者として）

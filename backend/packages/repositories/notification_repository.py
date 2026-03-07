@@ -22,12 +22,37 @@ class NotificationRepository:
         actor_id: UUID,
         notification_type: str,
         post_id: Optional[UUID] = None,
-        reply_id: Optional[UUID] = None
+        reply_id: Optional[UUID] = None,
+        title: Optional[str] = None,
+        message: Optional[str] = None
     ) -> Notification:
+        # デフォルトのタイトルとメッセージを設定
+        if not title:
+            if notification_type == "follow":
+                title = "新しいフォロワー"
+            elif notification_type == "like":
+                title = "投稿にいいね"
+            elif notification_type == "reply":
+                title = "投稿への返信"
+            else:
+                title = "通知"
+
+        if not message:
+            if notification_type == "follow":
+                message = "あなたをフォローしました"
+            elif notification_type == "like":
+                message = "投稿にいいねしました"
+            elif notification_type == "reply":
+                message = "投稿に返信しました"
+            else:
+                message = ""
+
         notification = Notification(
             user_id=user_id,
             actor_id=actor_id,
             type=notification_type,
+            title=title,
+            message=message,
             post_id=post_id,
             reply_id=reply_id
         )

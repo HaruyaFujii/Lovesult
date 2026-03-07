@@ -11,31 +11,31 @@ if TYPE_CHECKING:
     from packages.models.like import Like
     from packages.models.notification import Notification
     from packages.models.report import Report
-    from packages.models.bookmark import Bookmark
-    from packages.models.personality import Personality
-    from packages.models.message import Message
-    from packages.models.conversation import Conversation
+    # from packages.models.bookmark import Bookmark
+    # from packages.models.personality import Personality
+    # from packages.models.message import Message
+    # from packages.models.conversation import Conversation
 
 
 class UserStatus(str, Enum):
-    IN_LOVE = "in_love"
-    HEARTBROKEN = "heartbroken"
-    SEEKING = "seeking"
+    IN_LOVE = "IN_LOVE"
+    HEARTBROKEN = "HEARTBROKEN"
+    SEEKING = "SEEKING"
 
 
 class Gender(str, Enum):
-    MALE = "male"
-    FEMALE = "female"
-    OTHER = "other"
-    PRIVATE = "private"
+    MALE = "MALE"
+    FEMALE = "FEMALE"
+    OTHER = "OTHER"
+    PRIVATE = "PRIVATE"
 
 
 class AgeRange(str, Enum):
-    TEENS = "10s"
-    TWENTIES = "20s"
-    THIRTIES = "30s"
-    FORTIES = "40s"
-    FIFTIES_PLUS = "50s_plus"
+    TEENS = "TEENS"
+    TWENTIES = "TWENTIES"
+    THIRTIES = "THIRTIES"
+    FORTIES = "FORTIES"
+    FIFTIES_PLUS = "FIFTIES_PLUS"
 
 
 class UserBase(SQLModel):
@@ -99,8 +99,8 @@ class User(UserBase, table=True):
             "cascade": "all, delete-orphan"
         }
     )
-    bookmarks: List["Bookmark"] = Relationship(back_populates="user")
-    personality: Optional["Personality"] = Relationship(back_populates="user")
+    # bookmarks: List["Bookmark"] = Relationship(back_populates="user")
+    # personality: Optional["Personality"] = Relationship(back_populates="user")
 
     # Message relationships with explicit joins - temporarily disabled due to relationship conflicts
     # sent_messages: List["Message"] = Relationship(
