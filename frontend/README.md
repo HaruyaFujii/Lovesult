@@ -73,12 +73,12 @@ yarn dev
 
 1. バックエンドのOpenAPIスキーマ生成
 ```bash
-cd ../backend && make gen-openapi
+cd ../backend && make gen
 ```
 
 2. フロントエンドのAPIクライアント生成
 ```bash
-yarn gen:api
+yarn gen
 ```
 
 3. 開発サーバー起動

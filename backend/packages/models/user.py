@@ -48,6 +48,7 @@ class UserBase(SQLModel):
     avatar_url: Optional[str] = Field(default=None, max_length=500)
     followers_count: int = Field(default=0)
     following_count: int = Field(default=0)
+    personality_type: Optional[str] = Field(default=None, max_length=20)
 
 
 class User(UserBase, table=True):

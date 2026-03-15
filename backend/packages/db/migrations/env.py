@@ -13,7 +13,7 @@ from sqlmodel import SQLModel
 sys.path.append(str(Path(__file__).parents[3]))
 
 from api.config import get_settings
-from packages.models import Post, Reply, User  # noqa: F401
+from packages.models import schemas  # noqa: F401
 
 config = context.config
 settings = get_settings()

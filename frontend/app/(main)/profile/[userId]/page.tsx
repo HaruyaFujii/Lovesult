@@ -1,21 +1,38 @@
 'use client';
 
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useUserProfile } from '@/hooks/use-user';
+import { useUserPersonalityResult } from '@/hooks/use-personality';
+import { useCreateConversation } from '@/hooks/use-dm';
 import { FollowButton } from '@/components/FollowButton';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Calendar, Users, MessageCircle } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
-import { ja } from 'date-fns/locale';
-import { getUserStatusLabel, getGenderLabel, getAgeRangeLabel } from '@/lib/utils/enum-labels';
+import { Button } from '@/components/ui/button';
+import { Calendar, Users, MessageCircle, Heart, Star } from 'lucide-react';
+import Link from 'next/link';
+import { formatDistanceToNowJST } from '@/lib/utils/date';
+import { getUserStatusLabel, getGenderLabel, getAgeRangeLabel, getPersonalityTypeLabel } from '@/lib/utils/enum-labels';
 
 export default function UserProfilePage() {
   const params = useParams();
+  const router = useRouter();
   const userId = params.userId as string;
 
   const { data: profile, isLoading, error } = useUserProfile(userId);
+  const { data: personalityResult } = useUserPersonalityResult(userId);
+  const { mutate: createConversation, isPending: isCreatingConversation } = useCreateConversation();
+
+  const handleSendMessage = () => {
+    createConversation(userId, {
+      onSuccess: (conversation) => {
+        router.push(`/messages/${conversation.id}`);
+      },
+      onError: () => {
+        // エラーハンドリングは必要に応じて追加
+      },
+    });
+  };
 
   if (isLoading) {
     return <div className="text-center py-8">読み込み中...</div>;
@@ -55,7 +72,17 @@ export default function UserProfilePage() {
                   </h1>
                   <p className="text-gray-600">{(profile as any)?.data?.email}</p>
                 </div>
-                <FollowButton userId={userId} />
+                <div className="flex gap-2">
+                  <Button
+                    onClick={handleSendMessage}
+                    disabled={isCreatingConversation}
+                    className="gap-2"
+                  >
+                    <MessageCircle className="h-4 w-4" />
+                    メッセージ
+                  </Button>
+                  <FollowButton userId={userId} />
+                </div>
               </div>
 
               {/* ステータスと年代 */}
@@ -80,6 +107,36 @@ export default function UserProfilePage() {
                 <p className="text-gray-700 mb-4">{(profile as any).data.bio}</p>
               )}
 
+              {/* 性格診断結果 */}
+              {personalityResult ? (
+                <div className="bg-gradient-to-r from-pink-50 to-purple-50 rounded-lg p-4 mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="text-3xl">{personalityResult.primary_type.emoji}</div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-900">
+                        {personalityResult.primary_type.name}
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        恋愛タイプ診断結果
+                      </p>
+                      {personalityResult.secondary_type && (
+                        <div className="flex items-center gap-1 mt-1">
+                          <span className="text-lg">{personalityResult.secondary_type.emoji}</span>
+                          <span className="text-xs text-gray-500">サブ: {personalityResult.secondary_type.name}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-gray-50 rounded-lg p-3 mb-4 text-center">
+                  <Heart className="h-6 w-6 text-gray-400 mx-auto mb-1" />
+                  <p className="text-sm text-gray-500">
+                    まだ性格診断を受けていません
+                  </p>
+                </div>
+              )}
+
               {/* 統計情報 */}
               <div className="flex items-center gap-6 text-sm text-gray-600">
                 <div className="flex items-center gap-1">
@@ -97,10 +154,7 @@ export default function UserProfilePage() {
                 <div className="flex items-center gap-1">
                   <Calendar className="h-4 w-4" />
                   <span>
-                    {formatDistanceToNow(new Date((profile as any)?.data?.created_at), {
-                      addSuffix: true,
-                      locale: ja,
-                    })}
+                    {formatDistanceToNowJST((profile as any)?.data?.created_at)}
                   </span>
                 </div>
               </div>
@@ -109,10 +163,70 @@ export default function UserProfilePage() {
         </CardHeader>
       </Card>
 
+      {/* 性格診断詳細（結果がある場合のみ） */}
+      {personalityResult && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Star className="h-5 w-5 text-yellow-500" />
+              恋愛タイプ診断結果
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {/* プライマリタイプ */}
+              <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-pink-50 to-purple-50 rounded-lg">
+                <div className="text-4xl">{personalityResult.primary_type.emoji}</div>
+                <div className="flex-1">
+                  <h3 className="text-xl font-bold text-gray-900">
+                    {personalityResult.primary_type.name}
+                  </h3>
+                  <p className="text-gray-700 mt-1">
+                    {personalityResult.primary_type.description}
+                  </p>
+                </div>
+              </div>
+
+              {/* サブタイプ */}
+              {personalityResult.secondary_type && (
+                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                  <div className="text-2xl">{personalityResult.secondary_type.emoji}</div>
+                  <div>
+                    <p className="text-sm text-gray-600">サブタイプ</p>
+                    <p className="font-semibold">{personalityResult.secondary_type.name}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* スコア */}
+              <div>
+                <h4 className="font-semibold mb-3">性格スコア</h4>
+                <div className="grid grid-cols-2 gap-3">
+                  {Object.entries(personalityResult.scores).map(([type, score]) => (
+                    <div key={type} className="flex items-center justify-between bg-gray-50 rounded p-2">
+                      <span className="text-sm">{getPersonalityTypeLabel(type)}</span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-16 bg-gray-200 rounded-full h-2">
+                          <div
+                            className="bg-pink-500 h-2 rounded-full"
+                            style={{ width: `${(score / 20) * 100}%` }}
+                          />
+                        </div>
+                        <span className="text-sm font-medium w-6">{score}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* タブエリア（将来の投稿一覧など用） */}
       <Card>
         <CardHeader>
-          <h2 className="text-xl font-bold">投稿</h2>
+          <CardTitle>投稿</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center text-gray-500 py-8">

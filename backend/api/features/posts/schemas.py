@@ -33,6 +33,9 @@ class PostResponse(PostBase):
     likes_count: int = 0
     is_liked: bool = False  # 認証時のみ設定
 
+    # リプライ関連
+    replies_count: int = 0
+
     user: Optional[UserResponse] = None
 
     class Config:

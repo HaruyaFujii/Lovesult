@@ -1,6 +1,7 @@
 from typing import List, Optional
 from pydantic import BaseModel
 from api.features.posts.schemas import PostResponse
+from api.features.users.schemas import UserResponse
 
 
 class SearchFilters(BaseModel):
@@ -17,8 +18,19 @@ class SearchRequest(BaseModel):
     limit: int = 20
 
 
-class SearchResponse(BaseModel):
-    """検索レスポンス"""
+class PostSearchResponse(BaseModel):
+    """投稿検索レスポンス"""
     posts: List[PostResponse]
     next_cursor: Optional[str] = None
     total_count: Optional[int] = None
+
+
+class UserSearchResponse(BaseModel):
+    """ユーザー検索レスポンス"""
+    users: List[UserResponse]
+    next_cursor: Optional[str] = None
+    total_count: Optional[int] = None
+
+
+# 後方互換性のために SearchResponse を PostSearchResponse のエイリアスとして残す
+SearchResponse = PostSearchResponse

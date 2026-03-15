@@ -15,7 +15,6 @@ import {
 import { Camera, Upload, X } from "lucide-react";
 import { customInstance } from '@/lib/api/customInstance';
 import { useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
 
 interface AvatarUploadProps {
   currentAvatarUrl?: string;
@@ -50,19 +49,16 @@ export function AvatarUpload({
 
     // ファイルサイズチェック（5MB）
     if (file.size > 5 * 1024 * 1024) {
-      toast.error("ファイルサイズは5MB以下にしてください");
       return;
     }
 
     // ファイルタイプチェック
     if (!file.type.startsWith("image/")) {
-      toast.error("画像ファイルを選択してください");
       return;
     }
 
     // SVGファイルをブロック
     if (file.type === "image/svg+xml" || file.name.toLowerCase().endsWith('.svg')) {
-      toast.error("SVG形式の画像はサポートされていません。JPEG、PNG、GIF形式の画像を使用してください");
       return;
     }
 
@@ -96,7 +92,6 @@ export function AvatarUpload({
       const newAvatarUrl = response.data?.avatar_url || "";
       setLocalAvatarUrl(newAvatarUrl);
 
-      toast.success("アバターを更新しました");
       setOpen(false);
       setPreview(null);
       setSelectedFile(null);
@@ -113,13 +108,7 @@ export function AvatarUpload({
 
       const errorMessage = error?.message || error?.data?.detail || 'アバターの更新に失敗しました';
 
-      if (errorMessage.includes("File size")) {
-        toast.error("ファイルサイズは5MB以下にしてください");
-      } else if (errorMessage.includes("File must be an image")) {
-        toast.error("画像ファイルを選択してください");
-      } else {
-        toast.error(errorMessage);
-      }
+      // エラーハンドリングは必要に応じて追加
     } finally {
       setIsUploading(false);
     }

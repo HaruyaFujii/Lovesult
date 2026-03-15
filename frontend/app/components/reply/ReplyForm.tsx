@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { useCurrentUser } from '@/hooks/use-user';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 interface ReplyFormProps {
   onSubmit: (content: string) => Promise<void>;
@@ -9,67 +11,69 @@ interface ReplyFormProps {
 
 export default function ReplyForm({
   onSubmit,
-  placeholder = 'リプライを入力...',
+  placeholder = '返信する',
 }: ReplyFormProps) {
+  const { data: currentUser } = useCurrentUser();
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!content.trim()) {
-      setError('リプライ内容を入力してください');
+    if (!content.trim() || loading) {
       return;
     }
 
-    if (content.length > 300) {
-      setError('リプライは300文字以内で入力してください');
-      return;
-    }
-
-    setError('');
     setLoading(true);
 
     try {
-      await onSubmit(content);
+      await onSubmit(content.trim());
       setContent('');
     } catch (err: any) {
-      setError(err.message || 'リプライの送信に失敗しました');
+      // エラーハンドリングはサイレント
     } finally {
       setLoading(false);
     }
   };
 
+  const isValid = content.trim().length > 0 && content.length <= 300;
+
   return (
-    <form onSubmit={handleSubmit} className="bg-white rounded-lg p-4 border border-gray-200">
-      {error && (
-        <div className="mb-3 p-3 bg-red-50 border border-red-200 text-red-600 rounded-md text-sm">
-          {error}
-        </div>
-      )}
+    <div className="bg-white">
+      <div className="flex gap-3 p-4">
+        {/* 縦線なし（固定フォームなので） */}
+        <Avatar className="h-8 w-8 flex-shrink-0">
+          <AvatarImage src={currentUser?.avatar_url || undefined} />
+          <AvatarFallback className="text-xs">
+            {currentUser?.nickname?.charAt(0) || 'U'}
+          </AvatarFallback>
+        </Avatar>
 
-      <textarea
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
-        placeholder={placeholder}
-        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent resize-none"
-        rows={3}
-        maxLength={300}
-      />
+        {/* 入力フォーム */}
+        <form onSubmit={handleSubmit} className="flex-1">
+          <textarea
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            placeholder={placeholder}
+            className="w-full text-base placeholder:text-gray-500 border border-gray-200 rounded-lg px-3 py-2 outline-none resize-none focus:border-pink-500 focus:ring-1 focus:ring-pink-500"
+            rows={2}
+            maxLength={300}
+          />
 
-      <div className="mt-3 flex items-center justify-between">
-        <span className="text-sm text-gray-500">
-          {content.length}/300文字
-        </span>
-        <button
-          type="submit"
-          disabled={loading || !content.trim()}
-          className="px-4 py-2 bg-pink-600 text-white font-medium rounded-md hover:bg-pink-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-        >
-          {loading ? '送信中...' : 'リプライ'}
-        </button>
+          <div className="flex items-center justify-between mt-3">
+            <span className={`text-sm ${content.length > 280 ? 'text-red-500' : 'text-gray-500'}`}>
+              {content.length > 0 && `${content.length}/300`}
+            </span>
+            <button
+              type="submit"
+              disabled={loading || !isValid}
+              className="px-4 py-1.5 bg-pink-600 text-white font-semibold rounded-full hover:bg-pink-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm transition-colors"
+            >
+              {loading ? '送信中...' : '返信'}
+            </button>
+          </div>
+        </form>
       </div>
-    </form>
+    </div>
   );
 }

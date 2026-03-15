@@ -1,28 +1,35 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Heart } from "lucide-react";
-import { useQueryClient } from "@tanstack/react-query";
-import { useLikePost, useUnlikePost } from "@/hooks/use-likes";
-import { toast } from "sonner";
+import { useQueryClient, useMutation } from "@tanstack/react-query";
+import { customInstance } from "@/lib/api/customInstance";
 import { cn } from "@/lib/utils";
 
 interface LikeButtonProps {
-  postId: string;
+  targetId: string;
+  targetType?: 'post' | 'reply';
   isLiked: boolean;
   likesCount?: number;
   size?: "sm" | "default";
   showCount?: boolean;
+  // 後方互換性のため
+  postId?: string;
 }
 
 export function LikeButton({
-  postId,
+  targetId,
+  targetType = 'post',
   isLiked: initialIsLiked,
   likesCount = 0,
   size = "sm",
   showCount = true,
+  postId,
 }: LikeButtonProps) {
+  // 後方互換性：postIdが指定されていればtargetIdとして使用
+  const id = postId || targetId;
+
   const [isLiked, setIsLiked] = useState(initialIsLiked);
   const [count, setCount] = useState(likesCount);
   const queryClient = useQueryClient();
@@ -36,45 +43,57 @@ export function LikeButton({
     setCount(likesCount);
   }, [likesCount]);
 
-  const likeMutation = useLikePost();
-  const unlikeMutation = useUnlikePost();
-
-  // ローカルステート更新のためのハンドラー
-  useEffect(() => {
-    if (likeMutation.isSuccess) {
+  // 各ボタンに固有のmutationを作成
+  const likeMutation = useMutation({
+    mutationFn: async () => {
+      const endpoint = targetType === 'post'
+        ? `/api/v1/posts/${id}/like`
+        : `/api/v1/replies/${id}/like`;
+      await customInstance(endpoint, { method: 'POST' });
+    },
+    onMutate: () => {
+      // 楽観的更新
       setIsLiked(true);
       setCount((prev) => prev + 1);
-      // 通知カウントを更新（いいねで通知が発生する可能性があるため）
-      queryClient.invalidateQueries({ queryKey: ['/api/v1/notifications/unread-count'] });
-    }
-  }, [likeMutation.isSuccess, queryClient]);
-
-  useEffect(() => {
-    if (unlikeMutation.isSuccess) {
+    },
+    onError: () => {
+      // エラー時はロールバック
       setIsLiked(false);
       setCount((prev) => Math.max(0, prev - 1));
-    }
-  }, [unlikeMutation.isSuccess]);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/v1/notifications/unread-count'] });
+    },
+  });
 
-  useEffect(() => {
-    if (likeMutation.isError) {
-      toast.error("いいねに失敗しました");
-    }
-  }, [likeMutation.isError]);
+  const unlikeMutation = useMutation({
+    mutationFn: async () => {
+      const endpoint = targetType === 'post'
+        ? `/api/v1/posts/${id}/like`
+        : `/api/v1/replies/${id}/like`;
+      await customInstance(endpoint, { method: 'DELETE' });
+    },
+    onMutate: () => {
+      // 楽観的更新
+      setIsLiked(false);
+      setCount((prev) => Math.max(0, prev - 1));
+    },
+    onError: () => {
+      // エラー時はロールバック
+      setIsLiked(true);
+      setCount((prev) => prev + 1);
+    },
+  });
 
-  useEffect(() => {
-    if (unlikeMutation.isError) {
-      toast.error("いいね解除に失敗しました");
-    }
-  }, [unlikeMutation.isError]);
+  const handleClick = useCallback(() => {
+    if (likeMutation.isPending || unlikeMutation.isPending) return;
 
-  const handleClick = () => {
     if (isLiked) {
-      unlikeMutation.mutate({ postId });
+      unlikeMutation.mutate();
     } else {
-      likeMutation.mutate({ postId });
+      likeMutation.mutate();
     }
-  };
+  }, [isLiked, likeMutation, unlikeMutation]);
 
   const isLoading = likeMutation.isPending || unlikeMutation.isPending;
 

@@ -38,4 +38,11 @@ export interface Reply {
   content: string;
   created_at: string;
   user?: User;
+  parent_id?: string; // 親リプライのID（ネストリプライの場合）
+  replies?: Reply[]; // 子リプライ
+  likes_count?: number;
+  replies_count?: number;
+  is_liked?: boolean;
+  has_replies?: boolean; // ネストされたリプライがあるかどうか
+  _optimistic?: boolean;
 }

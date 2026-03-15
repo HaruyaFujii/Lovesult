@@ -2,9 +2,11 @@ from datetime import datetime
 from typing import List, Optional, Tuple, Union
 from uuid import UUID
 
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from packages.models.post import Post
+from packages.models.reply import Reply
 from packages.models.user import UserStatus
 from packages.repositories.post_repository import PostRepository
 from packages.repositories.user_repository import UserRepository
@@ -16,6 +18,14 @@ class TimelineService:
         self.post_repository = PostRepository(session)
         self.user_repository = UserRepository(session)
         self.like_service = LikeService(session)
+        self.session = session
+
+    async def _get_replies_count(self, post_id: UUID) -> int:
+        """投稿のリプライ数を取得"""
+        result = await self.session.execute(
+            select(func.count(Reply.id)).where(Reply.post_id == post_id)
+        )
+        return result.scalar() or 0
 
     async def get_timeline(
         self,
@@ -75,7 +85,9 @@ class TimelineService:
         posts = await self._add_like_status_to_posts(posts, current_user_id)
         return posts, next_cursor
 
-    async def _add_like_status_to_posts(self, posts: List[Post], current_user_id: Optional[UUID]) -> List[dict]:
+    async def _add_like_status_to_posts(
+        self, posts: List[Post], current_user_id: Optional[UUID]
+    ) -> List[dict]:
         """投稿リストにログインユーザーのいいね状態を追加"""
         result = []
 
@@ -91,9 +103,14 @@ class TimelineService:
 
             # いいね状態を追加
             if current_user_id:
-                post_dict["is_liked"] = await self.like_service.is_liked(current_user_id, post.id)
+                post_dict["is_liked"] = await self.like_service.is_liked(
+                    current_user_id, post.id
+                )
             else:
                 post_dict["is_liked"] = False
+
+            # リプライ数を追加
+            post_dict["replies_count"] = await self._get_replies_count(post.id)
 
             result.append(post_dict)
 

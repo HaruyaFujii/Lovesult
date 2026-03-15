@@ -178,6 +178,7 @@ class PostRepository:
         query: Optional[str] = None,
         status_filter: Optional[UserStatus] = None,
         age_range_filter: Optional[str] = None,
+        exclude_user_id: Optional[UUID] = None,
         cursor: Optional[datetime] = None,
         limit: int = 20,
     ) -> Tuple[List[Post], Optional[str]]:
@@ -188,6 +189,7 @@ class PostRepository:
             query: 検索クエリ（投稿内容を検索）
             status_filter: ステータスフィルター
             age_range_filter: 年齢範囲フィルター
+            exclude_user_id: 除外するユーザーID
             cursor: ページネーション用カーソル
             limit: 取得件数
 
@@ -210,6 +212,10 @@ class PostRepository:
         # 年齢範囲フィルター
         if age_range_filter:
             conditions.append(Post.author_age_range == age_range_filter)
+
+        # ユーザーIDを除外
+        if exclude_user_id:
+            conditions.append(Post.user_id != exclude_user_id)
 
         # 条件を適用
         if conditions:

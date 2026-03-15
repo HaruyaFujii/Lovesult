@@ -23,7 +23,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Flag } from "lucide-react";
 import { useCreateReport } from "@/lib/api/generated/endpoints/reports/reports";
-import { toast } from "sonner";
+import { useMutation } from "@tanstack/react-query";
+import { customInstance } from "@/lib/api/customInstance";
 
 interface ReportDialogProps {
   targetType: "post" | "reply" | "user";
@@ -44,37 +45,39 @@ export function ReportDialog({
   const [reportType, setReportType] = useState<string>("");
   const [reason, setReason] = useState("");
 
-  const createReportMutation = useCreateReport({
-    mutation: {
-      onSuccess: () => {
-        toast.success("報告を送信しました");
-        setOpen(false);
-        setReportType("");
-        setReason("");
-      },
-      onError: (error: any) => {
-        if (error?.response?.data?.detail?.includes("already reported")) {
-          toast.error("すでに報告済みです");
-        } else {
-          toast.error("報告の送信に失敗しました");
-        }
-      },
+  const createReportMutation = useMutation({
+    mutationFn: async (data: {
+      target_type: string;
+      target_id: string;
+      report_type: string;
+      reason: string;
+    }) => {
+      const response = await customInstance<any>('/api/v1/reports', {
+        method: 'POST',
+        data,
+      });
+      return response;
+    },
+    onSuccess: () => {
+      setOpen(false);
+      setReportType("");
+      setReason("");
+    },
+    onError: (error: any) => {
+      // エラーハンドリングはフォーム内で処理
     },
   });
 
   const handleSubmit = () => {
     if (!reportType || !reason.trim()) {
-      toast.error("すべての項目を入力してください");
       return;
     }
 
     createReportMutation.mutate({
-      data: {
-        target_type: targetType,
-        target_id: targetId,
-        report_type: reportType as any,
-        reason: reason.trim(),
-      },
+      target_type: targetType,
+      target_id: targetId,
+      report_type: reportType as any,
+      reason: reason.trim(),
     });
   };
 

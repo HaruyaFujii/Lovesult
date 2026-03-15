@@ -12,7 +12,6 @@ export const useLikePost = () => {
       return response.data;
     },
     onSuccess: () => {
-      // タイムラインのデータを無効化してリフレッシュ
       queryClient.invalidateQueries({ queryKey: ['/api/v1/posts'] });
     },
   });
@@ -23,15 +22,45 @@ export const useUnlikePost = () => {
 
   return useMutation({
     mutationFn: async ({ postId }: { postId: string }) => {
-      // いいね解除も同じ /like エンドポイントを DELETE メソッドで呼び出す
       const response = await customInstance<{ data: any }>(`/api/v1/posts/${postId}/like`, {
         method: 'DELETE',
       });
       return response.data;
     },
     onSuccess: () => {
-      // タイムラインのデータを無効化してリフレッシュ
       queryClient.invalidateQueries({ queryKey: ['/api/v1/posts'] });
+    },
+  });
+};
+
+export const useLikeReply = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ replyId }: { replyId: string }) => {
+      const response = await customInstance<{ data: any }>(`/api/v1/replies/${replyId}/like`, {
+        method: 'POST',
+      });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['posts'] });
+    },
+  });
+};
+
+export const useUnlikeReply = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ replyId }: { replyId: string }) => {
+      const response = await customInstance<{ data: any }>(`/api/v1/replies/${replyId}/like`, {
+        method: 'DELETE',
+      });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['posts'] });
     },
   });
 };

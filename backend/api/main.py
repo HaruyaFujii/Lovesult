@@ -15,6 +15,8 @@ from api.features.notifications.router import router as notifications_router
 from api.features.reports import router as reports_router
 from api.features.search.router import router as search_router
 from api.features.account.router import router as account_router
+from api.features.dm.router import router as dm_router
+from api.features.personality.router import router as personality_router
 
 settings = get_settings()
 
@@ -56,3 +58,5 @@ app.include_router(notifications_router, prefix="/api/v1")
 app.include_router(reports_router, prefix="/api/v1")
 app.include_router(search_router, prefix="/api/v1")
 app.include_router(account_router, prefix="/api/v1")
+app.include_router(dm_router, prefix="/api/v1")
+app.include_router(personality_router, prefix="/api/v1")

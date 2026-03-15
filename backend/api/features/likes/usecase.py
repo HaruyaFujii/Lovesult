@@ -19,3 +19,13 @@ class LikeUseCase:
         result = await self.like_service.unlike_post(user_id, post_id)
         await self.session.commit()
         return result
+
+    async def like_reply(self, user_id: UUID, reply_id: UUID) -> bool:
+        result = await self.like_service.like_reply(user_id, reply_id)
+        await self.session.commit()
+        return result
+
+    async def unlike_reply(self, user_id: UUID, reply_id: UUID) -> bool:
+        result = await self.like_service.unlike_reply(user_id, reply_id)
+        await self.session.commit()
+        return result

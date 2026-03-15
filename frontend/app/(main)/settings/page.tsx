@@ -20,8 +20,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Settings, Trash2, AlertTriangle, Loader2 } from "lucide-react";
-import { toast } from "sonner";
+import { Settings, Trash2, AlertTriangle, Loader2, Crown } from "lucide-react";
+import Link from "next/link";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -38,16 +38,13 @@ export default function SettingsPage() {
     mutation: {
       onSuccess: async (response) => {
         if ((response as any).data?.success) {
-          toast.success("アカウントが削除されました");
           await signOut();
           router.push("/");
         } else {
-          toast.error((response as any).data?.message || "削除に失敗しました");
           setIsDeleting(false);
         }
       },
       onError: () => {
-        toast.error("アカウントの削除中にエラーが発生しました");
         setIsDeleting(false);
       },
     },
@@ -55,7 +52,6 @@ export default function SettingsPage() {
 
   const handleDeleteAccount = async () => {
     if (confirmationText !== "DELETE MY ACCOUNT") {
-      toast.error("確認文字列が正しくありません");
       return;
     }
 
@@ -77,6 +73,31 @@ export default function SettingsPage() {
       </div>
 
       <div className="space-y-6">
+        {/* サブスクリプション設定 */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Crown className="h-5 w-5 text-yellow-500" />
+              サブスクリプション
+            </CardTitle>
+            <CardDescription>
+              現在のプラン: 無料プラン
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">プレミアム機能でより充実した体験を</p>
+              </div>
+              <Link href="/settings/subscription">
+                <Button variant="outline">
+                  プラン詳細
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* アカウント情報カード */}
         <Card>
           <CardHeader>

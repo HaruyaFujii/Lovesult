@@ -48,6 +48,16 @@ class ReplyRepository:
         await self.session.flush()
         return True
 
+    async def get_by_parent_id(self, parent_id: UUID) -> List[Reply]:
+        """特定の親リプライへのリプライを取得"""
+        result = await self.session.execute(
+            select(Reply)
+            .where(Reply.parent_id == parent_id)
+            .options(selectinload(Reply.user))
+            .order_by(Reply.created_at)
+        )
+        return list(result.scalars().all())
+
     async def count_by_post_id(self, post_id: UUID) -> int:
         result = await self.session.execute(
             select(Reply).where(Reply.post_id == post_id)

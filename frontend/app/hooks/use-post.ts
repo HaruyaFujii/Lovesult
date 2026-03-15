@@ -7,6 +7,8 @@ import {
   type CreatePostMutationBody,
   type UpdatePostMutationBody,
 } from '@/lib/api/generated/endpoints/posts/posts';
+import { useMutation } from '@tanstack/react-query';
+import { customInstance } from '@/lib/api/customInstance';
 
 export const useTimeline = (status?: string, limit = 20) => {
   return useGetPosts(
@@ -63,14 +65,18 @@ export const useUpdatePostMutation = () => {
 };
 
 export const useDeletePostMutation = () => {
-  return useDeletePost({
-    mutation: {
-      onSuccess: () => {
-        console.log('Post deleted successfully');
-      },
-      onError: (error) => {
-        console.error('Failed to delete post:', error);
-      },
+  return useMutation({
+    mutationFn: async ({ postId }: { postId: string }) => {
+      const response = await customInstance<any>(`/api/v1/posts/${postId}`, {
+        method: 'DELETE',
+      });
+      return response;
+    },
+    onSuccess: () => {
+      console.log('Post deleted successfully');
+    },
+    onError: (error) => {
+      console.error('Failed to delete post:', error);
     },
   });
 };

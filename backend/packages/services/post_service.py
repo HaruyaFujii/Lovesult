@@ -2,11 +2,12 @@ from datetime import datetime
 from typing import List, Optional, Tuple
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from packages.models.post import Post
+from packages.models.reply import Reply
 from packages.repositories.post_repository import PostRepository
 from packages.services.content_filter_service import ContentFilterService
 from packages.services.like_service import LikeService
@@ -16,6 +17,14 @@ class PostService:
     def __init__(self, session: AsyncSession):
         self.repository = PostRepository(session)
         self.like_service = LikeService(session)
+        self.session = session
+
+    async def _get_replies_count(self, post_id: UUID) -> int:
+        """投稿のリプライ数を取得"""
+        result = await self.session.execute(
+            select(func.count(Reply.id)).where(Reply.post_id == post_id)
+        )
+        return result.scalar() or 0
 
     async def create_post(self, user_id: UUID, content: str) -> Post:
         # コンテンツフィルタリング - temporarily disabled due to banned_words table schema issue
@@ -27,6 +36,7 @@ class PostService:
 
         # ユーザー情報を取得してスナップショットとして保存
         from packages.services.user_service import UserService
+
         user_service = UserService(self.repository.session)
         user = await user_service.get_user(user_id)
 
@@ -37,7 +47,7 @@ class PostService:
             user_id=user_id,
             content=content,
             author_status=user.status,
-            author_age_range=user.age_range
+            author_age_range=user.age_range,
         )
         created_post = await self.repository.create(post)
         await self.repository.session.commit()
@@ -50,7 +60,9 @@ class PostService:
         )
         return result.scalar_one()
 
-    async def get_post(self, post_id: UUID, current_user_id: Optional[UUID] = None) -> Optional[dict]:
+    async def get_post(
+        self, post_id: UUID, current_user_id: Optional[UUID] = None
+    ) -> Optional[dict]:
         post = await self.repository.get_by_id(post_id)
         if not post:
             return None
@@ -66,9 +78,14 @@ class PostService:
 
         # いいね状態を追加
         if current_user_id:
-            post_dict["is_liked"] = await self.like_service.is_liked(current_user_id, post_id)
+            post_dict["is_liked"] = await self.like_service.is_liked(
+                current_user_id, post_id
+            )
         else:
             post_dict["is_liked"] = False
+
+        # リプライ数を追加
+        post_dict["replies_count"] = await self._get_replies_count(post_id)
 
         return post_dict
 
@@ -111,7 +128,9 @@ class PostService:
         if cursor:
             cursor_datetime = datetime.fromisoformat(cursor)
 
-        posts, next_cursor = await self.repository.get_user_posts(user_id, cursor_datetime, limit)
+        posts, next_cursor = await self.repository.get_user_posts(
+            user_id, cursor_datetime, limit
+        )
 
         # Postオブジェクトを辞書に変換し、いいね状態を追加
         result = []
@@ -126,10 +145,15 @@ class PostService:
 
             # いいね状態を追加
             if current_user_id:
-                post_dict["is_liked"] = await self.like_service.is_liked(current_user_id, post.id)
+                post_dict["is_liked"] = await self.like_service.is_liked(
+                    current_user_id, post.id
+                )
             else:
                 post_dict["is_liked"] = False
-    
+
+            # リプライ数を追加
+            post_dict["replies_count"] = await self._get_replies_count(post.id)
+
             result.append(post_dict)
 
         return result, next_cursor
