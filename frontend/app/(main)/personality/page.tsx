@@ -59,9 +59,7 @@ export default function PersonalityQuizPage() {
           <Heart className="h-6 w-6 text-pink-500" />
           恋愛傾向診断
         </h1>
-        <p className="text-gray-600">
-          10個の質問に答えて、あなたの恋愛タイプを診断しましょう
-        </p>
+        <p className="text-gray-600">10個の質問に答えて、あなたの恋愛タイプを診断しましょう</p>
       </div>
 
       <div className="mb-6">
@@ -90,9 +88,7 @@ export default function PersonalityQuizPage() {
               <div className="flex items-center">
                 <div
                   className={`w-5 h-5 rounded-full border-2 mr-3 flex items-center justify-center ${
-                    answers[currentIndex] === index
-                      ? 'border-pink-500'
-                      : 'border-gray-300'
+                    answers[currentIndex] === index ? 'border-pink-500' : 'border-gray-300'
                   }`}
                 >
                   {answers[currentIndex] === index && (

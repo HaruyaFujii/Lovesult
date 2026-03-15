@@ -1,10 +1,8 @@
-from typing import Dict, List
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from packages.repositories.personality_repository import PersonalityRepository
-
 
 # 性格タイプ定義
 PERSONALITY_TYPES = {
@@ -62,7 +60,7 @@ class RecommendationService:
         self,
         user_id: UUID,
         limit: int = 10,
-    ) -> List[Dict]:
+    ) -> list[dict]:
         """相性の良いユーザーを取得"""
         # 自分の診断結果を取得
         my_result = await self.personality_repo.get_by_user_id(user_id)
@@ -85,9 +83,9 @@ class RecommendationService:
                 "nickname": user.nickname,
                 "avatar_url": user.avatar_url,
                 "personality_type": user.personality_type,
-                "personality_emoji": PERSONALITY_TYPES.get(
-                    user.personality_type, {}
-                ).get("emoji", ""),
+                "personality_emoji": PERSONALITY_TYPES.get(user.personality_type, {}).get(
+                    "emoji", ""
+                ),
                 "compatibility_score": self._calculate_compatibility(
                     my_type, user.personality_type
                 ),

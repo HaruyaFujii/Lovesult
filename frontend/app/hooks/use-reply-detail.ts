@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createClient } from '@/lib/supabase/client';
 import { Reply } from '@/types';
-import { getReply } from '@/lib/api/generated/endpoints/replies/replies';
+import { getPost } from '@/lib/api/generated/endpoints/posts/posts';
 
 export const useReplyDetail = (replyId: string) => {
   const queryClient = useQueryClient();
@@ -18,19 +18,22 @@ export const useReplyDetail = (replyId: string) => {
     queryKey: ['reply', replyId],
     queryFn: async () => {
       const supabase = createClient();
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
-      const response = await getReply(replyId, {
-        headers: session?.access_token
-          ? { Authorization: `Bearer ${session.access_token}` }
-          : {},
+      const response = await getPost(replyId, {
+        headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {},
       });
 
       if (response.status !== 200) {
         throw new Error('Failed to fetch reply');
       }
 
-      return response.data as Reply;
+      return {
+        ...response.data,
+        post_id: response.data.root_id || '', // Map root_id to post_id for compatibility
+      } as Reply;
     },
     enabled: !!replyId,
     staleTime: 0,
@@ -43,9 +46,11 @@ export const useReplyDetail = (replyId: string) => {
   const deleteReplyMutation = useMutation({
     mutationFn: async () => {
       const supabase = createClient();
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
-      const response = await fetch(`/api/v1/replies/${replyId}`, {
+      const response = await fetch(`/api/v1/posts/${replyId}`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${session?.access_token}`,

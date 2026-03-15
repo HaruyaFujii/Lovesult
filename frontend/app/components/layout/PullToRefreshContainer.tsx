@@ -10,8 +10,9 @@ interface Props {
 }
 
 export function PullToRefreshContainer({ children, onRefresh }: Props) {
-  const { containerRef, isRefreshing, pullDistance, pullProgress } =
-    usePullToRefresh({ onRefresh });
+  const { containerRef, isRefreshing, pullDistance, pullProgress } = usePullToRefresh({
+    onRefresh,
+  });
 
   return (
     <div ref={containerRef} className="h-full overflow-y-auto hide-scrollbar">

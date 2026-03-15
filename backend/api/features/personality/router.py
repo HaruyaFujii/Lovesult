@@ -1,10 +1,10 @@
-from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.core.dependencies import get_current_user_id, get_db
+
 from .schemas import (
     AnswerSubmit,
     PersonalityResultResponse,
@@ -19,8 +19,7 @@ router = APIRouter(prefix="/personality", tags=["personality"])
 @router.get("/questions", response_model=QuestionsResponse)
 async def get_questions() -> QuestionsResponse:
     """診断質問を取得"""
-    usecase = PersonalityUseCase(None)  # sessionは不要
-    return usecase.get_questions()
+    return PersonalityUseCase.get_questions()
 
 
 @router.post("/submit", response_model=PersonalityResultResponse)
@@ -53,11 +52,11 @@ async def get_my_result(
     return result
 
 
-@router.get("/users/{user_id}", response_model=Optional[PersonalityResultResponse])
+@router.get("/users/{user_id}", response_model=PersonalityResultResponse | None)
 async def get_user_result(
     user_id: UUID,
     db: AsyncSession = Depends(get_db),
-) -> Optional[PersonalityResultResponse]:
+) -> PersonalityResultResponse | None:
     """指定ユーザーの診断結果を取得"""
     usecase = PersonalityUseCase(db)
     return await usecase.get_user_result(user_id)

@@ -1,8 +1,7 @@
-from typing import List, Optional, Tuple
-from uuid import UUID
 from datetime import datetime
+from uuid import UUID
 
-from sqlalchemy import and_, or_, desc, select
+from sqlalchemy import and_, desc, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from packages.models.user import User, UserStatus
@@ -12,11 +11,11 @@ class UserRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def get_by_id(self, user_id: UUID) -> Optional[User]:
+    async def get_by_id(self, user_id: UUID) -> User | None:
         result = await self.session.execute(select(User).where(User.id == user_id))
         return result.scalar_one_or_none()
 
-    async def get_by_email(self, email: str) -> Optional[User]:
+    async def get_by_email(self, email: str) -> User | None:
         result = await self.session.execute(select(User).where(User.email == email))
         return result.scalar_one_or_none()
 
@@ -33,20 +32,18 @@ class UserRepository:
         return user
 
     async def exists(self, user_id: UUID) -> bool:
-        result = await self.session.execute(
-            select(User.id).where(User.id == user_id).limit(1)
-        )
+        result = await self.session.execute(select(User).where(User.id == user_id).limit(1))
         return result.scalar_one_or_none() is not None
 
     async def search_users(
         self,
-        query: Optional[str] = None,
-        status_filter: Optional[UserStatus] = None,
-        age_range_filter: Optional[str] = None,
-        exclude_user_id: Optional[UUID] = None,
-        cursor: Optional[datetime] = None,
+        query: str | None = None,
+        status_filter: UserStatus | None = None,
+        age_range_filter: str | None = None,
+        exclude_user_id: UUID | None = None,
+        cursor: datetime | None = None,
         limit: int = 20,
-    ) -> Tuple[List[User], Optional[str]]:
+    ) -> tuple[list[User], str | None]:
         """
         ユーザーを検索する
 
@@ -69,9 +66,8 @@ class UserRepository:
         # テキスト検索（ニックネームとbioを検索）
         if query:
             text_conditions = []
-            if query:
-                text_conditions.append(User.nickname.ilike(f"%{query}%"))
-                text_conditions.append(User.bio.ilike(f"%{query}%"))
+            text_conditions.append(User.nickname.ilike(f"%{query}%"))
+            text_conditions.append(User.bio.ilike(f"%{query}%"))
             if text_conditions:
                 conditions.append(or_(*text_conditions))
 

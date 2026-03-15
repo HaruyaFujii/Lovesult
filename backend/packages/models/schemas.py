@@ -10,7 +10,8 @@ from packages.models.like import Like
 from packages.models.notification import Notification
 from packages.models.personality_result import PersonalityResult
 from packages.models.post import Post
-from packages.models.reply import Reply
+
+# from packages.models.reply import Reply
 from packages.models.reply_like import ReplyLike
 from packages.models.report import Report
 from packages.models.user import User
@@ -18,7 +19,7 @@ from packages.models.user import User
 __all__ = [
     "User",
     "Post",
-    "Reply",
+    # "Reply",  # Replies are now stored in posts table
     "ReplyLike",
     "Follow",
     "Like",

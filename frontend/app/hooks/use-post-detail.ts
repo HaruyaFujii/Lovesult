@@ -17,12 +17,12 @@ export const usePost = (postId: string) => {
     queryKey: ['post', postId],
     queryFn: async () => {
       const supabase = createClient();
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
       const response = await fetch(`/api/v1/posts/${postId}`, {
-        headers: session?.access_token
-          ? { Authorization: `Bearer ${session.access_token}` }
-          : {},
+        headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {},
       });
 
       if (!response.ok) {
@@ -43,7 +43,9 @@ export const usePost = (postId: string) => {
   const updatePostMutation = useMutation({
     mutationFn: async (content: string) => {
       const supabase = createClient();
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
       const response = await fetch(`/api/v1/posts/${postId}`, {
         method: 'PUT',
@@ -85,7 +87,9 @@ export const usePost = (postId: string) => {
   const deletePostMutation = useMutation({
     mutationFn: async () => {
       const supabase = createClient();
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
       const response = await fetch(`/api/v1/posts/${postId}`, {
         method: 'DELETE',

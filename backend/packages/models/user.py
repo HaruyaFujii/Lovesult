@@ -1,15 +1,15 @@
 from datetime import datetime
-from enum import Enum
-from typing import TYPE_CHECKING, List, Optional
+from enum import StrEnum
+from typing import TYPE_CHECKING
 from uuid import UUID
 
 from sqlmodel import Field, Relationship, SQLModel
 
 if TYPE_CHECKING:
-    from packages.models.post import Post
     from packages.models.follow import Follow
     from packages.models.like import Like
     from packages.models.notification import Notification
+    from packages.models.post import Post
     from packages.models.report import Report
     # from packages.models.bookmark import Bookmark
     # from packages.models.personality import Personality
@@ -17,20 +17,20 @@ if TYPE_CHECKING:
     # from packages.models.conversation import Conversation
 
 
-class UserStatus(str, Enum):
+class UserStatus(StrEnum):
     IN_LOVE = "IN_LOVE"
     HEARTBROKEN = "HEARTBROKEN"
     SEEKING = "SEEKING"
 
 
-class Gender(str, Enum):
+class Gender(StrEnum):
     MALE = "MALE"
     FEMALE = "FEMALE"
     OTHER = "OTHER"
     PRIVATE = "PRIVATE"
 
 
-class AgeRange(str, Enum):
+class AgeRange(StrEnum):
     TEENS = "TEENS"
     TWENTIES = "TWENTIES"
     THIRTIES = "THIRTIES"
@@ -44,11 +44,11 @@ class UserBase(SQLModel):
     status: UserStatus
     gender: Gender = Field(default=Gender.PRIVATE)
     age_range: AgeRange
-    bio: Optional[str] = Field(default=None, max_length=200)
-    avatar_url: Optional[str] = Field(default=None, max_length=500)
+    bio: str | None = Field(default=None, max_length=200)
+    avatar_url: str | None = Field(default=None, max_length=500)
     followers_count: int = Field(default=0)
     following_count: int = Field(default=0)
-    personality_type: Optional[str] = Field(default=None, max_length=20)
+    personality_type: str | None = Field(default=None, max_length=20)
 
 
 class User(UserBase, table=True):
@@ -59,46 +59,43 @@ class User(UserBase, table=True):
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
     # Relationships
-    posts: List["Post"] = Relationship(back_populates="user")
-    likes: List["Like"] = Relationship(back_populates="user")
-    notifications: List["Notification"] = Relationship(
+    posts: list["Post"] = Relationship(back_populates="user")
+    likes: list["Like"] = Relationship(back_populates="user")
+    notifications: list["Notification"] = Relationship(
         back_populates="user",
-        sa_relationship_kwargs={
-            "foreign_keys": "[Notification.user_id]",
-            "post_update": True
-        }
+        sa_relationship_kwargs={"foreign_keys": "[Notification.user_id]", "post_update": True},
     )
 
     # Follow relationships
-    following_relations: List["Follow"] = Relationship(
+    following_relations: list["Follow"] = Relationship(
         back_populates="follower",
         sa_relationship_kwargs={
             "foreign_keys": "[Follow.follower_id]",
-            "cascade": "all, delete-orphan"
-        }
+            "cascade": "all, delete-orphan",
+        },
     )
-    follower_relations: List["Follow"] = Relationship(
+    follower_relations: list["Follow"] = Relationship(
         back_populates="following",
         sa_relationship_kwargs={
             "foreign_keys": "[Follow.following_id]",
-            "cascade": "all, delete-orphan"
-        }
+            "cascade": "all, delete-orphan",
+        },
     )
 
     # Report relationships
-    reported_items: List["Report"] = Relationship(
+    reported_items: list["Report"] = Relationship(
         back_populates="reporter",
         sa_relationship_kwargs={
             "foreign_keys": "[Report.reporter_id]",
-            "cascade": "all, delete-orphan"
-        }
+            "cascade": "all, delete-orphan",
+        },
     )
-    reports_about_me: List["Report"] = Relationship(
+    reports_about_me: list["Report"] = Relationship(
         back_populates="reported_user",
         sa_relationship_kwargs={
             "foreign_keys": "[Report.user_id]",
-            "cascade": "all, delete-orphan"
-        }
+            "cascade": "all, delete-orphan",
+        },
     )
     # bookmarks: List["Bookmark"] = Relationship(back_populates="user")
     # personality: Optional["Personality"] = Relationship(back_populates="user")

@@ -50,9 +50,7 @@ export default function PersonalityResultPage() {
             あなたのタイプ
           </div>
         </div>
-        <p className="text-gray-700 leading-relaxed">
-          {result.primary_type.description}
-        </p>
+        <p className="text-gray-700 leading-relaxed">{result.primary_type.description}</p>
       </div>
 
       {/* サブタイプ */}

@@ -1,14 +1,15 @@
 import { useQuery } from '@tanstack/react-query';
 import { customInstance } from '@/lib/api/customInstance';
+import { Post, User } from '@/types';
 
 export interface PostSearchResponse {
-  posts: any[];
+  posts: Post[];
   next_cursor?: string;
   total_count?: number;
 }
 
 export interface UserSearchResponse {
-  users: any[];
+  users: User[];
   next_cursor?: string;
   total_count?: number;
 }
@@ -25,7 +26,7 @@ export function useSearchPosts(params: SearchParams, enabled = true) {
   return useQuery({
     queryKey: ['search', 'posts', params],
     queryFn: async (): Promise<PostSearchResponse> => {
-      const queryParams: any = {};
+      const queryParams: Record<string, string | number> = {};
 
       if (params.q) queryParams.q = params.q;
       if (params.status) queryParams.status = params.status;
@@ -48,7 +49,7 @@ export function useSearchUsers(params: SearchParams, enabled = true) {
   return useQuery({
     queryKey: ['search', 'users', params],
     queryFn: async (): Promise<UserSearchResponse> => {
-      const queryParams: any = {};
+      const queryParams: Record<string, string | number> = {};
 
       if (params.q) queryParams.q = params.q;
       if (params.status) queryParams.status = params.status;

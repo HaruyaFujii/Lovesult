@@ -6,18 +6,17 @@ Create Date: 2026-03-15 16:22:38.699221
 
 """
 
-from typing import Sequence, Union
+from collections.abc import Sequence
 
-from alembic import op
 import sqlalchemy as sa
-import sqlmodel
+from alembic import op
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision: str = "ccb42b79b420"
-down_revision: Union[str, None] = "f614b8efbc14"
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | None = "f614b8efbc14"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
@@ -38,12 +37,8 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index(
-        op.f("ix_reply_likes_reply_id"), "reply_likes", ["reply_id"], unique=False
-    )
-    op.create_index(
-        op.f("ix_reply_likes_user_id"), "reply_likes", ["user_id"], unique=False
-    )
+    op.create_index(op.f("ix_reply_likes_reply_id"), "reply_likes", ["reply_id"], unique=False)
+    op.create_index(op.f("ix_reply_likes_user_id"), "reply_likes", ["user_id"], unique=False)
     op.add_column("replies", sa.Column("parent_id", sa.Uuid(), nullable=True))
     # Add columns with server_default first, then remove the default
     op.add_column(
@@ -56,9 +51,7 @@ def upgrade() -> None:
     )
     op.alter_column("replies", "likes_count", server_default=None)
     op.alter_column("replies", "replies_count", server_default=None)
-    op.create_index(
-        op.f("ix_replies_parent_id"), "replies", ["parent_id"], unique=False
-    )
+    op.create_index(op.f("ix_replies_parent_id"), "replies", ["parent_id"], unique=False)
     op.create_foreign_key(None, "replies", "replies", ["parent_id"], ["id"])
     op.alter_column(
         "reports",
@@ -79,7 +72,7 @@ def downgrade() -> None:
         nullable=False,
         existing_server_default=sa.text("now()"),
     )
-    op.drop_constraint(None, "replies", type_="foreignkey")
+    op.drop_constraint(None, "replies", type_="foreignkey")  # type: ignore
     op.drop_index(op.f("ix_replies_parent_id"), table_name="replies")
     op.drop_column("replies", "replies_count")
     op.drop_column("replies", "likes_count")

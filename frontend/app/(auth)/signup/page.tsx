@@ -33,8 +33,8 @@ export default function SignupPage() {
     try {
       await signUp(email, password);
       router.push('/profile/edit');
-    } catch (err: any) {
-      setError(err.message || '登録に失敗しました');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : '登録に失敗しました');
     } finally {
       setLoading(false);
     }
@@ -44,9 +44,7 @@ export default function SignupPage() {
     <>
       <div className="text-center">
         <h2 className="text-3xl font-bold text-gray-900">新規登録</h2>
-        <p className="mt-2 text-sm text-gray-600">
-          恋愛相談を始めましょう
-        </p>
+        <p className="mt-2 text-sm text-gray-600">恋愛相談を始めましょう</p>
       </div>
 
       <form className="mt-8 space-y-6" onSubmit={handleSubmit}>

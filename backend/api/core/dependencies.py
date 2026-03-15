@@ -1,10 +1,10 @@
-from typing import AsyncGenerator, Optional
+from collections.abc import AsyncGenerator
+from typing import Any
 from uuid import UUID
-import httpx
 
+import httpx
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from jose import JWTError, jwt
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.config import get_settings
@@ -19,7 +19,7 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
         yield session
 
 
-async def verify_jwt_token(token: str) -> dict:
+async def verify_jwt_token(token: str) -> dict[str, Any]:
     # 開発環境での一時的なテスト用認証
     if settings.env == "development" and token == "test":
         return {
@@ -29,10 +29,6 @@ async def verify_jwt_token(token: str) -> dict:
         }
 
     try:
-        print(f"DEBUG: Verifying token: {token[:20]}...")
-        print(f"DEBUG: Supabase URL: {settings.supabase_url}")
-        print(f"DEBUG: Supabase anon key: {settings.supabase_anon_key[:20]}...")
-
         # Supabaseのトークンを検証するためには、まず公開キーを取得する必要があります
         # しかし、簡単な方法として、SupabaseのAPIを使って検証しましょう
         async with httpx.AsyncClient() as client:
@@ -45,9 +41,6 @@ async def verify_jwt_token(token: str) -> dict:
                 headers=headers,
             )
 
-            print(f"DEBUG: Supabase response status: {response.status_code}")
-            print(f"DEBUG: Supabase response text: {response.text}")
-
             if response.status_code != 200:
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
@@ -56,27 +49,24 @@ async def verify_jwt_token(token: str) -> dict:
                 )
 
             user_data = response.json()
-            print(f"DEBUG: User data received: {user_data}")
             return {
                 "sub": user_data.get("id"),
                 "email": user_data.get("email"),
                 "aud": "authenticated",
             }
 
-    except httpx.RequestError as e:
-        print(f"DEBUG: Request error: {e}")
+    except httpx.RequestError as err:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Authentication service unavailable",
             headers={"WWW-Authenticate": "Bearer"},
-        )
-    except Exception as e:
-        print(f"DEBUG: Exception: {e}")
+        ) from err
+    except Exception as err:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid authentication credentials",
             headers={"WWW-Authenticate": "Bearer"},
-        )
+        ) from err
 
 
 async def ensure_user_exists(user_id: UUID, email: str, db: AsyncSession) -> None:
@@ -88,7 +78,7 @@ async def ensure_user_exists(user_id: UUID, email: str, db: AsyncSession) -> Non
 
 
 async def get_current_user_id(
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
+    credentials: HTTPAuthorizationCredentials | None = Depends(security),
     db: AsyncSession = Depends(get_db),
 ) -> UUID:
     if not credentials:
@@ -119,9 +109,9 @@ async def get_current_user_id(
 
 
 async def get_current_user_id_optional(
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
+    credentials: HTTPAuthorizationCredentials | None = Depends(security),
     db: AsyncSession = Depends(get_db),
-) -> Optional[UUID]:
+) -> UUID | None:
     """
     現在のユーザーIDを取得（オプショナル）
     認証されていない場合はNoneを返す
@@ -149,8 +139,8 @@ async def get_current_user_id_optional(
 
 
 async def get_optional_current_user_id(
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
-) -> Optional[UUID]:
+    credentials: HTTPAuthorizationCredentials | None = Depends(security),
+) -> UUID | None:
     if not credentials:
         return None
 

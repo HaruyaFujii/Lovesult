@@ -1,5 +1,4 @@
 import { useQuery } from '@tanstack/react-query';
-import { useGetUsers } from '@/lib/api/generated/endpoints/users/users';
 import { customInstance } from '@/lib/api/customInstance';
 
 export interface User {

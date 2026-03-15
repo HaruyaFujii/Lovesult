@@ -1,6 +1,6 @@
 import {
   useGetUser,
-  type UpdateCurrentUserMutationBody
+  type UpdateCurrentUserMutationBody,
 } from '@/lib/api/generated/endpoints/users/users';
 import { customInstance } from '@/lib/api/customInstance';
 import { useMutation, useQuery } from '@tanstack/react-query';
@@ -14,11 +14,11 @@ export const useCurrentUser = (enabled = true) => {
         const response = await customInstance<{ data: UserResponse }>('/api/v1/users/me', {
           method: 'GET',
           skipAuthRedirect: true, // 401エラーでも自動サインアウトしない
-        } as any);
+        });
         return response.data;
-      } catch (error: any) {
+      } catch (error: unknown) {
         // 401エラーの場合はnullを返す（未認証状態を示す）
-        if (error?.status === 401) {
+        if (error && typeof error === 'object' && 'status' in error && error.status === 401) {
           return null;
         }
         throw error;
@@ -44,7 +44,7 @@ export const useUserProfile = (userId: string, enabled = true) => {
 export const useUpdateProfile = () => {
   return useMutation({
     mutationFn: async (data: UserUpdate) => {
-      const response = await customInstance<{ data: any }>('/api/v1/users/me', {
+      const response = await customInstance<{ data: UserResponse }>('/api/v1/users/me', {
         method: 'PUT',
         data,
       });

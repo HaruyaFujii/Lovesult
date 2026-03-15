@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Optional
 from uuid import UUID
 
 from pydantic import BaseModel, EmailStr
@@ -12,7 +11,7 @@ class UserBase(BaseModel):
     status: UserStatus
     gender: Gender
     age_range: AgeRange
-    bio: Optional[str] = None
+    bio: str | None = None
 
 
 class UserCreate(UserBase):
@@ -20,18 +19,18 @@ class UserCreate(UserBase):
 
 
 class UserUpdate(BaseModel):
-    nickname: Optional[str] = None
-    status: Optional[UserStatus] = None
-    gender: Optional[Gender] = None
-    age_range: Optional[AgeRange] = None
-    bio: Optional[str] = None
-    avatar_url: Optional[str] = None
+    nickname: str | None = None
+    status: UserStatus | None = None
+    gender: Gender | None = None
+    age_range: AgeRange | None = None
+    bio: str | None = None
+    avatar_url: str | None = None
 
 
 class UserResponse(UserBase):
     id: UUID
     email: str
-    avatar_url: Optional[str] = None
+    avatar_url: str | None = None
     followers_count: int = 0
     following_count: int = 0
     posts_count: int = 0

@@ -22,12 +22,11 @@ export const useGetNotifications = (limit = 10, enabled = true) => {
   return useQuery({
     queryKey: ['/api/v1/notifications', { limit }],
     queryFn: async () => {
-      const response = await customInstance<{ data: { notifications: any[], next_cursor?: string } }>(
-        `/api/v1/notifications?limit=${limit}`,
-        {
-          method: 'GET',
-        }
-      );
+      const response = await customInstance<{
+        data: { notifications: any[]; next_cursor?: string };
+      }>(`/api/v1/notifications?limit=${limit}`, {
+        method: 'GET',
+      });
       return response;
     },
     enabled,
@@ -61,12 +60,9 @@ export const useMarkAllNotificationsAsRead = () => {
 
   return useMutation({
     mutationFn: async () => {
-      const response = await customInstance<{ data: any }>(
-        '/api/v1/notifications/read-all',
-        {
-          method: 'PUT',
-        }
-      );
+      const response = await customInstance<{ data: any }>('/api/v1/notifications/read-all', {
+        method: 'PUT',
+      });
       return response.data;
     },
     onSuccess: () => {

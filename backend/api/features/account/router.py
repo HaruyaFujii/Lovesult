@@ -1,9 +1,10 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.core.dependencies import get_current_user_id, get_db
+
 from .schemas import AccountDeletionRequest, AccountDeletionResponse
 from .usecase import AccountUseCase
 
@@ -14,7 +15,7 @@ router = APIRouter(prefix="/api/v1", tags=["account"])
 async def delete_account(
     request: AccountDeletionRequest,
     current_user_id: UUID = Depends(get_current_user_id),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ) -> AccountDeletionResponse:
     """
     アカウントを削除する
@@ -28,8 +29,7 @@ async def delete_account(
 
 @router.get("/account/summary")
 async def get_account_summary(
-    current_user_id: UUID = Depends(get_current_user_id),
-    db: AsyncSession = Depends(get_db)
+    current_user_id: UUID = Depends(get_current_user_id), db: AsyncSession = Depends(get_db)
 ) -> dict:
     """
     アカウントのデータサマリーを取得する

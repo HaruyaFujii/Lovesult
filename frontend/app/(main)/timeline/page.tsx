@@ -79,7 +79,6 @@ export default function TimelinePage() {
   const posts = postsQuery.data?.posts || [];
   const loading = postsQuery.isLoading;
 
-
   return (
     <div className="flex flex-col h-screen">
       {/* モバイルヘッダー */}
@@ -130,12 +129,15 @@ export default function TimelinePage() {
           {/* 投稿リスト */}
           <div className="bg-white">
             {posts
-              .filter((post: any, index: number, arr: any[]) => arr.findIndex((p: any) => p.id === post.id) === index)
+              .filter(
+                (post: any, index: number, arr: any[]) =>
+                  arr.findIndex((p: any) => p.id === post.id) === index
+              )
               .map((post: any, index: number) => {
                 const isMyPost = currentUser && post.user?.id === currentUser.id;
                 const isOptimistic = post._optimistic;
                 return (
-                  <div key={post.id} className={index > 0 ? "border-t border-gray-200" : ""}>
+                  <div key={post.id} className={index > 0 ? 'border-t border-gray-200' : ''}>
                     <PostCard
                       post={post}
                       showActions={Boolean(isMyPost && !isOptimistic)}
@@ -160,14 +162,12 @@ export default function TimelinePage() {
                   <p className="text-gray-500 text-lg font-medium mb-2">
                     {activeTab === 'following'
                       ? 'フォロー中のユーザーの投稿がありません'
-                      : 'まだ投稿がありません'
-                    }
+                      : 'まだ投稿がありません'}
                   </p>
                   <p className="text-gray-400 text-sm">
                     {activeTab === 'following'
                       ? 'ユーザーをフォローして投稿を見てみましょう'
-                      : '右下のボタンから投稿してみませんか？'
-                    }
+                      : '右下のボタンから投稿してみませんか？'}
                   </p>
                 </div>
               </div>

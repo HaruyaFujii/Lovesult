@@ -1,15 +1,14 @@
 from datetime import datetime
-from typing import List, Optional, Tuple
 from uuid import UUID
 
-from sqlalchemy import select, func, update
+from sqlalchemy import and_, desc, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from packages.models.notification import Notification
-from packages.models.user import User
 from packages.models.post import Post
-from packages.models.reply import Reply
+
+# from packages.models.reply import Reply  # Replies are now stored in posts table
 
 
 class NotificationRepository:
@@ -21,10 +20,10 @@ class NotificationRepository:
         user_id: UUID,
         actor_id: UUID,
         notification_type: str,
-        post_id: Optional[UUID] = None,
-        reply_id: Optional[UUID] = None,
-        title: Optional[str] = None,
-        message: Optional[str] = None
+        post_id: UUID | None = None,
+        reply_id: UUID | None = None,
+        title: str | None = None,
+        message: str | None = None,
     ) -> Notification:
         # デフォルトのタイトルとメッセージを設定
         if not title:
@@ -54,31 +53,28 @@ class NotificationRepository:
             title=title,
             message=message,
             post_id=post_id,
-            reply_id=reply_id
+            reply_id=reply_id,
         )
         self.session.add(notification)
         await self.session.flush()
         return notification
 
     async def get_notifications(
-        self,
-        user_id: UUID,
-        cursor: Optional[datetime] = None,
-        limit: int = 20
-    ) -> Tuple[List[Notification], Optional[str]]:
+        self, user_id: UUID, cursor: datetime | None = None, limit: int = 20
+    ) -> tuple[list[Notification], str | None]:
         query = (
             select(Notification)
-            .where(Notification.user_id == user_id)
             .options(
-                selectinload(Notification.actor),
                 selectinload(Notification.post).selectinload(Post.user),
-                selectinload(Notification.reply).selectinload(Reply.user)
-            )
-            .order_by(Notification.created_at.desc())
+                selectinload(Notification.reply).selectinload(Post.user)
+            )  # reply now refers to Post with parent_id
+            .where(Notification.user_id == user_id)
+            .order_by(desc(Notification.created_at))
         )
 
         if cursor:
-            query = query.where(Notification.created_at < cursor)
+            cursor_time = datetime.fromisoformat(cursor)
+            query = query.where(Notification.created_at < cursor_time)
 
         query = query.limit(limit + 1)
         result = await self.session.execute(query)
@@ -94,10 +90,8 @@ class NotificationRepository:
 
     async def get_unread_count(self, user_id: UUID) -> int:
         result = await self.session.execute(
-            select(func.count(Notification.id))
-            .where(
-                Notification.user_id == user_id,
-                Notification.is_read == False
+            select(func.count(Notification.id)).where(
+                and_(Notification.user_id == user_id, Notification.is_read == False)
             )
         )
         return result.scalar()
@@ -105,10 +99,7 @@ class NotificationRepository:
     async def mark_as_read(self, notification_id: UUID, user_id: UUID) -> bool:
         result = await self.session.execute(
             update(Notification)
-            .where(
-                Notification.id == notification_id,
-                Notification.user_id == user_id
-            )
+            .where(and_(Notification.id == notification_id, Notification.user_id == user_id))
             .values(is_read=True)
         )
         return result.rowcount > 0
@@ -116,10 +107,7 @@ class NotificationRepository:
     async def mark_all_as_read(self, user_id: UUID) -> int:
         result = await self.session.execute(
             update(Notification)
-            .where(
-                Notification.user_id == user_id,
-                Notification.is_read == False
-            )
+            .where(Notification.user_id == user_id)
             .values(is_read=True)
         )
         return result.rowcount

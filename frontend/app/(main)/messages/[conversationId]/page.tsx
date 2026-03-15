@@ -1,9 +1,8 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { useConversation, useMessages, useSendMessage, useMarkAsRead } from '@/hooks/use-dm';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Loader2, Send, Clock, AlertCircle } from 'lucide-react';
 import { formatDistanceToNowJST } from '@/lib/utils/date';
 import { MobileHeader } from '@/components/layout/MobileHeader';
@@ -11,7 +10,6 @@ import { useSwipeBack } from '@/hooks/useSwipeBack';
 
 export default function ChatPage() {
   const params = useParams();
-  const router = useRouter();
   const conversationId = params.conversationId as string;
 
   const [messageContent, setMessageContent] = useState('');
@@ -21,7 +19,7 @@ export default function ChatPage() {
   // スワイプで戻る機能を有効化
   useSwipeBack();
 
-  const { data: conversation, isLoading: conversationLoading } = useConversation(conversationId);
+  const { isLoading: conversationLoading } = useConversation(conversationId);
   const { data: messagesData, isLoading: messagesLoading } = useMessages(conversationId);
   const { mutate: sendMessage, isPending: isSending } = useSendMessage(conversationId);
   const { mutate: markAsRead } = useMarkAsRead(conversationId);
@@ -95,54 +93,59 @@ export default function ChatPage() {
           </div>
         ) : (
           <>
-            {messages.slice().reverse().map((message) => (
-              <div
-                key={message.id}
-                className={`flex ${message.is_mine ? 'justify-end' : 'justify-start'}`}
-              >
-                <div className="max-w-[70%]">
-                  <div
-                    className={`${
-                      message.is_mine
-                        ? `${message.status === 'error' ? 'bg-red-500' : 'bg-pink-500'} text-white rounded-l-lg rounded-tr-lg`
-                        : 'bg-gray-100 text-gray-900 rounded-r-lg rounded-tl-lg'
-                    } px-4 py-2`}
-                  >
-                    <p className="text-sm break-words">{message.content}</p>
-                    <p
-                      className={`text-xs mt-1 ${
-                        message.is_mine ? 'text-pink-100' : 'text-gray-500'
-                      }`}
+            {messages
+              .slice()
+              .reverse()
+              .map((message) => (
+                <div
+                  key={message.id}
+                  className={`flex ${message.is_mine ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div className="max-w-[70%]">
+                    <div
+                      className={`${
+                        message.is_mine
+                          ? `${message.status === 'error' ? 'bg-red-500' : 'bg-pink-500'} text-white rounded-l-lg rounded-tr-lg`
+                          : 'bg-gray-100 text-gray-900 rounded-r-lg rounded-tl-lg'
+                      } px-4 py-2`}
                     >
-                      {formatDistanceToNowJST(message.created_at)}
-                    </p>
-                  </div>
-
-                  {/* ステータス表示（メッセージの下） */}
-                  {message.is_mine && message.status && (
-                    <div className={`flex items-center gap-1 mt-1 text-xs ${
-                      message.is_mine ? 'justify-end' : 'justify-start'
-                    }`}>
-                      {message.status === 'sending' && (
-                        <>
-                          <Clock className="h-3 w-3 text-gray-400" />
-                          <span className="text-gray-400">送信中...</span>
-                        </>
-                      )}
-                      {message.status === 'sent' && (
-                        <span className="text-gray-400">送信完了</span>
-                      )}
-                      {message.status === 'error' && (
-                        <>
-                          <AlertCircle className="h-3 w-3 text-red-500" />
-                          <span className="text-red-500">送信失敗</span>
-                        </>
-                      )}
+                      <p className="text-sm break-words">{message.content}</p>
+                      <p
+                        className={`text-xs mt-1 ${
+                          message.is_mine ? 'text-pink-100' : 'text-gray-500'
+                        }`}
+                      >
+                        {formatDistanceToNowJST(message.created_at)}
+                      </p>
                     </div>
-                  )}
+
+                    {/* ステータス表示（メッセージの下） */}
+                    {message.is_mine && message.status && (
+                      <div
+                        className={`flex items-center gap-1 mt-1 text-xs ${
+                          message.is_mine ? 'justify-end' : 'justify-start'
+                        }`}
+                      >
+                        {message.status === 'sending' && (
+                          <>
+                            <Clock className="h-3 w-3 text-gray-400" />
+                            <span className="text-gray-400">送信中...</span>
+                          </>
+                        )}
+                        {message.status === 'sent' && (
+                          <span className="text-gray-400">送信完了</span>
+                        )}
+                        {message.status === 'error' && (
+                          <>
+                            <AlertCircle className="h-3 w-3 text-red-500" />
+                            <span className="text-red-500">送信失敗</span>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
             <div ref={messagesEndRef} />
           </>
         )}
@@ -183,11 +186,7 @@ export default function ChatPage() {
               }
             `}
           >
-            {isSending ? (
-              <Loader2 size={18} className="animate-spin" />
-            ) : (
-              <Send size={18} />
-            )}
+            {isSending ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
           </button>
         </div>
       </div>

@@ -5,8 +5,8 @@ from uuid import UUID, uuid4
 from sqlmodel import Field, Relationship, SQLModel
 
 if TYPE_CHECKING:
-    from packages.models.user import User
     from packages.models.post import Post
+    from packages.models.user import User
 
 
 class LikeBase(SQLModel):
@@ -24,6 +24,4 @@ class Like(LikeBase, table=True):
     user: Optional["User"] = Relationship(back_populates="likes")
     post: Optional["Post"] = Relationship(back_populates="likes")
 
-    __table_args__ = (
-        {"extend_existing": True}
-    )
+    __table_args__ = {"extend_existing": True}

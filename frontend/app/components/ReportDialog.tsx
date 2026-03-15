@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useState } from "react";
+import { useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -9,25 +9,25 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
+} from '@/components/ui/dialog';
+import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Flag } from "lucide-react";
-import { useCreateReport } from "@/lib/api/generated/endpoints/reports/reports";
-import { useMutation } from "@tanstack/react-query";
-import { customInstance } from "@/lib/api/customInstance";
+} from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Flag } from 'lucide-react';
+import { useCreateReport } from '@/lib/api/generated/endpoints/reports/reports';
+import { useMutation } from '@tanstack/react-query';
+import { customInstance } from '@/lib/api/customInstance';
 
 interface ReportDialogProps {
-  targetType: "post" | "reply" | "user";
+  targetType: 'post' | 'reply' | 'user';
   targetId: string;
   triggerText?: string;
   triggerIcon?: boolean;
@@ -37,13 +37,13 @@ interface ReportDialogProps {
 export function ReportDialog({
   targetType,
   targetId,
-  triggerText = "報告",
+  triggerText = '報告',
   triggerIcon = true,
   asDropdownItem = false,
 }: ReportDialogProps) {
   const [open, setOpen] = useState(false);
-  const [reportType, setReportType] = useState<string>("");
-  const [reason, setReason] = useState("");
+  const [reportType, setReportType] = useState<string>('');
+  const [reason, setReason] = useState('');
 
   const createReportMutation = useMutation({
     mutationFn: async (data: {
@@ -60,8 +60,8 @@ export function ReportDialog({
     },
     onSuccess: () => {
       setOpen(false);
-      setReportType("");
-      setReason("");
+      setReportType('');
+      setReason('');
     },
     onError: (error: any) => {
       // エラーハンドリングはフォーム内で処理
@@ -83,20 +83,20 @@ export function ReportDialog({
 
   const getTargetTypeLabel = () => {
     switch (targetType) {
-      case "post":
-        return "投稿";
-      case "reply":
-        return "返信";
-      case "user":
-        return "ユーザー";
+      case 'post':
+        return '投稿';
+      case 'reply':
+        return '返信';
+      case 'user':
+        return 'ユーザー';
       default:
-        return "コンテンツ";
+        return 'コンテンツ';
     }
   };
 
   const TriggerComponent = asDropdownItem ? (
     <DropdownMenuItem
-      onSelect={(e: { preventDefault: () => void; }) => {
+      onSelect={(e: { preventDefault: () => void }) => {
         e.preventDefault();
         setOpen(true);
       }}
@@ -120,8 +120,7 @@ export function ReportDialog({
         <DialogHeader>
           <DialogTitle>{getTargetTypeLabel()}を報告</DialogTitle>
           <DialogDescription>
-            不適切な内容や規約違反を報告してください。
-            虚偽の報告は処罰の対象となる場合があります。
+            不適切な内容や規約違反を報告してください。 虚偽の報告は処罰の対象となる場合があります。
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
@@ -150,17 +149,11 @@ export function ReportDialog({
               rows={4}
               maxLength={1000}
             />
-            <p className="text-xs text-muted-foreground text-right">
-              {reason.length}/1000
-            </p>
+            <p className="text-xs text-muted-foreground text-right">{reason.length}/1000</p>
           </div>
         </div>
         <DialogFooter>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => setOpen(false)}
-          >
+          <Button type="button" variant="outline" onClick={() => setOpen(false)}>
             キャンセル
           </Button>
           <Button
@@ -168,7 +161,7 @@ export function ReportDialog({
             onClick={handleSubmit}
             disabled={!reportType || !reason.trim() || createReportMutation.isPending}
           >
-            {createReportMutation.isPending ? "送信中..." : "報告を送信"}
+            {createReportMutation.isPending ? '送信中...' : '報告を送信'}
           </Button>
         </DialogFooter>
       </DialogContent>

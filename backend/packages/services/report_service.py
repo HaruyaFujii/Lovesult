@@ -1,12 +1,12 @@
 from uuid import UUID
-from typing import Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from packages.models.report import Report, ReportType, ReportStatus
-from packages.repositories.report_repository import ReportRepository
+from packages.models.report import Report, ReportStatus, ReportType
 from packages.repositories.post_repository import PostRepository
-from packages.repositories.reply_repository import ReplyRepository
+from packages.repositories.report_repository import ReportRepository
+
+# from packages.repositories.reply_repository import ReplyRepository
 from packages.repositories.user_repository import UserRepository
 
 
@@ -17,7 +17,7 @@ class ReportService:
         self.session = session
         self.report_repository = ReportRepository(session)
         self.post_repository = PostRepository(session)
-        self.reply_repository = ReplyRepository(session)
+        # self.reply_repository = ReplyRepository(session)
         self.user_repository = UserRepository(session)
 
     async def create_report(
@@ -40,8 +40,9 @@ class ReportService:
                 raise ValueError("Post not found")
             post_id = target_id
         elif target_type == "reply":
-            reply = await self.reply_repository.get_by_id(target_id)
-            if not reply:
+            # Replies are now stored in posts table with parent_id
+            reply = await self.post_repository.get_post_with_user(target_id)
+            if not reply or not reply.parent_id:  # Must have parent_id to be a reply
                 raise ValueError("Reply not found")
             reply_id = target_id
         elif target_type == "user":
@@ -78,7 +79,7 @@ class ReportService:
 
         return report
 
-    async def get_report(self, report_id: UUID) -> Optional[Report]:
+    async def get_report(self, report_id: UUID) -> Report | None:
         """報告を取得する"""
         return await self.report_repository.get_report_by_id(report_id)
 
@@ -87,8 +88,8 @@ class ReportService:
         report_id: UUID,
         status: ReportStatus,
         reviewer_id: UUID,
-        reviewer_comment: Optional[str] = None,
-    ) -> Optional[Report]:
+        reviewer_comment: str | None = None,
+    ) -> Report | None:
         """報告のステータスを更新する"""
         report = await self.report_repository.get_report_by_id(report_id)
         if not report:
@@ -108,7 +109,7 @@ class ReportService:
 
         return updated_report
 
-    async def _handle_resolved_report(self, report: Report):
+    async def _handle_resolved_report(self, report: Report) -> None:
         """解決済み報告の処理"""
         # ここで必要に応じて、報告対象のコンテンツを削除したり、
         # ユーザーをBANしたりする処理を実装

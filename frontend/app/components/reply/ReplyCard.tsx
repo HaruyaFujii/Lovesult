@@ -45,9 +45,7 @@ export default function ReplyCard({
   return (
     <div className={cn('relative', className)}>
       {/* Connection line for nested replies */}
-      {depth > 0 && (
-        <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gray-200" />
-      )}
+      {depth > 0 && <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gray-200" />}
 
       <ContentCard
         id={reply.id}

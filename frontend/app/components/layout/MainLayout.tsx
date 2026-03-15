@@ -10,19 +10,10 @@ interface Props {
 }
 
 // ボトムナビを表示しないパス
-const HIDE_NAV_PATHS = [
-  '/login',
-  '/signup',
-  '/onboarding',
-  '/post/',
-];
+const HIDE_NAV_PATHS = ['/login', '/signup', '/onboarding', '/post/', '/reply/'];
 
 // FABを表示するパス
-const SHOW_FAB_PATHS = [
-  '/timeline',
-  '/profile',
-  '/search',
-];
+const SHOW_FAB_PATHS = ['/timeline', '/profile', '/search'];
 
 export function MainLayout({ children }: Props) {
   const pathname = usePathname();

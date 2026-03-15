@@ -21,8 +21,8 @@ export default function LoginPage() {
     try {
       await signIn(email, password);
       router.push('/timeline');
-    } catch (err: any) {
-      setError(err.message || 'ログインに失敗しました');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'ログインに失敗しました');
     } finally {
       setLoading(false);
     }
@@ -32,9 +32,7 @@ export default function LoginPage() {
     <>
       <div className="text-center">
         <h2 className="text-3xl font-bold text-gray-900">ログイン</h2>
-        <p className="mt-2 text-sm text-gray-600">
-          LoveTalkへようこそ
-        </p>
+        <p className="mt-2 text-sm text-gray-600">LoveTalkへようこそ</p>
       </div>
 
       <form className="mt-8 space-y-6" onSubmit={handleSubmit}>

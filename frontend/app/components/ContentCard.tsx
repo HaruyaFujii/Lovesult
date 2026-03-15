@@ -67,13 +67,13 @@ export function ContentCard({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const isOptimistic = data._optimistic;
-  const isOwner = currentUserId && (data.user_id === currentUserId || data.user?.id === currentUserId);
+  const isOwner =
+    currentUserId && (data.user_id === currentUserId || data.user?.id === currentUserId);
   const canReply = onReply && depth < maxDepth;
 
   // 投稿用のユーザー情報
-  const avatarUrl = type === 'post'
-    ? (data.author_avatar_url || data.user?.avatar_url)
-    : data.user?.avatar_url;
+  const avatarUrl =
+    type === 'post' ? data.author_avatar_url || data.user?.avatar_url : data.user?.avatar_url;
   const nickname = data.user?.nickname || 'Unknown';
   const status = type === 'post' ? data.author_status : undefined;
   const ageRange = type === 'post' ? data.author_age_range : undefined;
@@ -96,22 +96,30 @@ export function ContentCard({
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'IN_LOVE': return 'bg-pink-100 text-pink-800';
-      case 'HEARTBROKEN': return 'bg-blue-100 text-blue-800';
-      case 'SEEKING': return 'bg-purple-100 text-purple-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'IN_LOVE':
+        return 'bg-pink-100 text-pink-800';
+      case 'HEARTBROKEN':
+        return 'bg-blue-100 text-blue-800';
+      case 'SEEKING':
+        return 'bg-purple-100 text-purple-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
   const contentElement = (
-    <p className={`whitespace-pre-wrap break-words ${type === 'post' ? 'text-gray-800 mb-3' : 'text-gray-900 mt-1 text-sm leading-relaxed'}`}>
+    <p
+      className={`whitespace-pre-wrap break-words ${type === 'post' ? 'text-gray-800 mb-3' : 'text-gray-900 mt-1 text-sm leading-relaxed'}`}
+    >
       {data.content}
     </p>
   );
 
   return (
     <div className={`${isOptimistic ? 'opacity-75' : ''}`}>
-      <div className={`flex items-start gap-3 p-4 hover:bg-gray-50/50 transition-colors ${type === 'reply' && depth > 0 ? 'ml-8' : ''}`}>
+      <div
+        className={`flex items-start gap-3 p-4 hover:bg-gray-50/50 transition-colors ${type === 'reply' && depth > 0 ? 'ml-8' : ''}`}
+      >
         {/* アバター部分 */}
         <div className="flex flex-col items-center">
           {type === 'reply' && <div className="w-0.5 bg-gray-200 h-3 mb-2" />}
@@ -127,7 +135,9 @@ export function ContentCard({
         <div className="flex-1 min-w-0">
           {/* ヘッダー */}
           <div className="flex items-center gap-2 flex-wrap">
-            <span className={`font-semibold ${type === 'post' ? 'text-gray-900' : 'text-sm text-gray-900'}`}>
+            <span
+              className={`font-semibold ${type === 'post' ? 'text-gray-900' : 'text-sm text-gray-900'}`}
+            >
               {nickname}
             </span>
             {status && (
@@ -136,9 +146,7 @@ export function ContentCard({
               </span>
             )}
             {ageRange && (
-              <span className="text-xs text-gray-500">
-                {getAgeRangeLabel(ageRange as any)}
-              </span>
+              <span className="text-xs text-gray-500">{getAgeRangeLabel(ageRange as any)}</span>
             )}
             <span className="text-sm text-gray-500">
               {isOptimistic ? '投稿中...' : formatDistanceToNowJST(data.created_at)}
@@ -174,9 +182,7 @@ export function ContentCard({
           {/* コンテンツ */}
           {type === 'post' ? (
             <Link href={`/post/${data.id}`}>
-              <div className="cursor-pointer hover:text-gray-900">
-                {contentElement}
-              </div>
+              <div className="cursor-pointer hover:text-gray-900">{contentElement}</div>
             </Link>
           ) : (
             contentElement
@@ -235,7 +241,9 @@ export function ContentCard({
                 />
               </div>
               <div className="flex items-center justify-between mt-2">
-                <span className={`text-xs ${replyContent.length > 280 ? 'text-red-500' : 'text-gray-500'}`}>
+                <span
+                  className={`text-xs ${replyContent.length > 280 ? 'text-red-500' : 'text-gray-500'}`}
+                >
                   {replyContent.length > 0 && `${replyContent.length}/300`}
                 </span>
                 <div className="flex gap-2">

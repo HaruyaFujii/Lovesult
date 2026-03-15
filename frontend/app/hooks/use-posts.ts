@@ -1,9 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { customInstance } from '@/lib/api/customInstance';
+import { Post, User } from '@/types';
 
 export interface PostsResponse {
-  posts: any[];
+  posts: Post[];
   next_cursor?: string;
 }
 
@@ -16,7 +17,7 @@ export function usePosts(params?: {
   return useQuery({
     queryKey: ['posts', params],
     queryFn: async (): Promise<PostsResponse> => {
-      const queryParams: any = {};
+      const queryParams: Record<string, string | number> = {};
 
       if (params?.limit) queryParams.limit = params.limit;
       if (params?.cursor) queryParams.cursor = params.cursor;
@@ -33,7 +34,7 @@ export function usePosts(params?: {
   });
 }
 
-export function useCreatePost(currentUser?: any) {
+export function useCreatePost(currentUser?: User) {
   const queryClient = useQueryClient();
 
   // ユーザーデータをメモ化して不要な再レンダリングを防ぐ
@@ -45,7 +46,13 @@ export function useCreatePost(currentUser?: any) {
       name: currentUser.name || currentUser.nickname,
       avatar_url: currentUser.avatar_url || null,
     };
-  }, [currentUser?.id, currentUser?.nickname, currentUser?.name, currentUser?.avatar_url]);
+  }, [
+    currentUser,
+    currentUser?.id,
+    currentUser?.nickname,
+    currentUser?.name,
+    currentUser?.avatar_url,
+  ]);
 
   const optimisticPostData = useMemo(() => {
     if (!currentUser) return null;
@@ -53,11 +60,11 @@ export function useCreatePost(currentUser?: any) {
       author_status: currentUser.status,
       author_age_range: currentUser.age_range,
     };
-  }, [currentUser?.status, currentUser?.age_range]);
+  }, [currentUser, currentUser?.status, currentUser?.age_range]);
 
   return useMutation({
     mutationFn: async (data: { content: string }) => {
-      const response = await customInstance<{ data: any }>('/api/v1/posts', {
+      const response = await customInstance<{ data: Post }>('/api/v1/posts', {
         method: 'POST',
         data: data,
       });
@@ -72,7 +79,7 @@ export function useCreatePost(currentUser?: any) {
       const previousPosts = queryClient.getQueriesData({ queryKey: ['posts'] });
 
       // 楽観的更新：新しい投稿を一時的に追加
-      queryClient.setQueriesData({ queryKey: ['posts'] }, (old: any) => {
+      queryClient.setQueriesData({ queryKey: ['posts'] }, (old: PostsResponse | undefined) => {
         if (!old) return old;
 
         const optimisticPost = {

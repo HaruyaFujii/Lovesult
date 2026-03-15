@@ -1,12 +1,13 @@
 from uuid import UUID
 
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from packages.repositories.like_repository import LikeRepository
 from packages.models.post import Post
-from packages.models.reply import Reply
+
+# from packages.models.reply import Reply
 from packages.models.reply_like import ReplyLike
+from packages.repositories.like_repository import LikeRepository
 from packages.services.notification_service import NotificationService
 
 
@@ -32,9 +33,7 @@ class LikeService:
         post = post_result.scalar_one()
 
         notification_service = NotificationService(self.session)
-        await notification_service.create_like_notification(
-            post_id, post.user_id, user_id
-        )
+        await notification_service.create_like_notification(post_id, post.user_id, user_id)
 
         return True
 
@@ -54,9 +53,7 @@ class LikeService:
     async def like_reply(self, user_id: UUID, reply_id: UUID) -> bool:
         # すでにいいねしているかチェック
         result = await self.session.execute(
-            select(ReplyLike).where(
-                ReplyLike.user_id == user_id, ReplyLike.reply_id == reply_id
-            )
+            select(ReplyLike).where(ReplyLike.user_id == user_id, ReplyLike.reply_id == reply_id)
         )
         if result.scalar_one_or_none():
             return False
@@ -65,10 +62,8 @@ class LikeService:
         reply_like = ReplyLike(user_id=user_id, reply_id=reply_id)
         self.session.add(reply_like)
 
-        # カウント更新
-        reply_result = await self.session.execute(
-            select(Reply).where(Reply.id == reply_id)
-        )
+        # カウント更新 (replies are now stored in posts table)
+        reply_result = await self.session.execute(select(Post).where(Post.id == reply_id))
         reply = reply_result.scalar_one_or_none()
         if reply:
             reply.likes_count = (reply.likes_count or 0) + 1
@@ -78,9 +73,7 @@ class LikeService:
     async def unlike_reply(self, user_id: UUID, reply_id: UUID) -> bool:
         # いいねを削除
         result = await self.session.execute(
-            select(ReplyLike).where(
-                ReplyLike.user_id == user_id, ReplyLike.reply_id == reply_id
-            )
+            select(ReplyLike).where(ReplyLike.user_id == user_id, ReplyLike.reply_id == reply_id)
         )
         reply_like = result.scalar_one_or_none()
         if not reply_like:
@@ -88,10 +81,8 @@ class LikeService:
 
         await self.session.delete(reply_like)
 
-        # カウント更新
-        reply_result = await self.session.execute(
-            select(Reply).where(Reply.id == reply_id)
-        )
+        # カウント更新 (replies are now stored in posts table)
+        reply_result = await self.session.execute(select(Post).where(Post.id == reply_id))
         reply = reply_result.scalar_one_or_none()
         if reply and reply.likes_count > 0:
             reply.likes_count -= 1
@@ -100,8 +91,6 @@ class LikeService:
 
     async def is_reply_liked(self, user_id: UUID, reply_id: UUID) -> bool:
         result = await self.session.execute(
-            select(ReplyLike).where(
-                ReplyLike.user_id == user_id, ReplyLike.reply_id == reply_id
-            )
+            select(ReplyLike).where(ReplyLike.user_id == user_id, ReplyLike.reply_id == reply_id)
         )
         return result.scalar_one_or_none() is not None

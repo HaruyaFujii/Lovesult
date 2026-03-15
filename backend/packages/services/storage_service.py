@@ -1,6 +1,6 @@
-import os
-from typing import Optional
+import contextlib
 from uuid import UUID
+
 import httpx
 
 from api.config.settings import get_settings
@@ -17,7 +17,7 @@ class StorageService:
         self.supabase_key = settings.supabase_service_role_key
         self.bucket_name = "avatars"
 
-    async def ensure_bucket_exists(self):
+    async def ensure_bucket_exists(self) -> None:
         """avatarsバケットが存在することを確認し、なければ作成する"""
         async with httpx.AsyncClient(verify=False) as client:
             # まずバケットが存在するかチェック
@@ -44,21 +44,12 @@ class StorageService:
                 "name": self.bucket_name,
                 "public": True,  # アバター画像は公開
                 "file_size_limit": 5242880,  # 5MB
-                "allowed_mime_types": ["image/jpeg", "image/png", "image/gif", "image/webp"]
+                "allowed_mime_types": ["image/jpeg", "image/png", "image/gif", "image/webp"],
             }
 
-            response = await client.post(
-                create_url,
-                headers=headers,
-                json=bucket_data
-            )
+            await client.post(create_url, headers=headers, json=bucket_data)
 
-    async def upload_avatar(
-        self,
-        user_id: UUID,
-        file_data: bytes,
-        content_type: str
-    ) -> str:
+    async def upload_avatar(self, user_id: UUID, file_data: bytes, content_type: str) -> str:
         """アバター画像をアップロードしてURLを返す"""
         # バケットが存在することを確認
         await self.ensure_bucket_exists()
@@ -87,13 +78,8 @@ class StorageService:
         # SSL証明書検証を無効にしてHTTPクライアントを作成
         async with httpx.AsyncClient(verify=False) as client:
             # 先に既存ファイルを削除（あれば）
-            try:
-                await client.delete(
-                    url,
-                    headers={"Authorization": f"Bearer {self.supabase_key}"}
-                )
-            except Exception:
-                pass
+            with contextlib.suppress(Exception):
+                await client.delete(url, headers={"Authorization": f"Bearer {self.supabase_key}"})
 
             # 新しいファイルをアップロード
             response = await client.post(
@@ -103,10 +89,14 @@ class StorageService:
             )
 
             if response.status_code not in [200, 201]:
-                raise ValueError(f"Failed to upload avatar: {response.status_code} - {response.text}")
+                raise ValueError(
+                    f"Failed to upload avatar: {response.status_code} - {response.text}"
+                )
 
             # 公開URLを返す
-            public_url = f"{self.supabase_url}/storage/v1/object/public/{self.bucket_name}/{file_path}"
+            public_url = (
+                f"{self.supabase_url}/storage/v1/object/public/{self.bucket_name}/{file_path}"
+            )
 
         return public_url
 

@@ -1,20 +1,26 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useSearchPosts, useSearchUsers } from "@/hooks/use-search";
-import PostCard from "@/components/post/PostCard";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Search, Loader2, User } from "lucide-react";
-import { useDebounce } from "@/hooks/useDebounce";
-import Link from "next/link";
+import { useState } from 'react';
+import { useSearchPosts, useSearchUsers } from '@/hooks/use-search';
+import PostCard from '@/components/post/PostCard';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Search, Loader2, User } from 'lucide-react';
+import { useDebounce } from '@/hooks/useDebounce';
+import Link from 'next/link';
 
 export default function SearchPage() {
-  const [searchType, setSearchType] = useState<"posts" | "users">("posts");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchType, setSearchType] = useState<'posts' | 'users'>('posts');
+  const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string | undefined>(undefined);
   const [ageRangeFilter, setAgeRangeFilter] = useState<string | undefined>(undefined);
   const [postsCursor, setPostsCursor] = useState<string | undefined>(undefined);
@@ -24,7 +30,11 @@ export default function SearchPage() {
   const debouncedQuery = useDebounce(searchQuery, 500);
 
   // 投稿検索
-  const { data: postsData, isLoading: postsLoading, error: postsError } = useSearchPosts(
+  const {
+    data: postsData,
+    isLoading: postsLoading,
+    error: postsError,
+  } = useSearchPosts(
     {
       q: debouncedQuery || undefined,
       status: statusFilter,
@@ -32,11 +42,15 @@ export default function SearchPage() {
       cursor: postsCursor,
       limit: 20,
     },
-    searchType === "posts" && !!(debouncedQuery || statusFilter || ageRangeFilter)
+    searchType === 'posts' && !!(debouncedQuery || statusFilter || ageRangeFilter)
   );
 
   // ユーザー検索
-  const { data: usersData, isLoading: usersLoading, error: usersError } = useSearchUsers(
+  const {
+    data: usersData,
+    isLoading: usersLoading,
+    error: usersError,
+  } = useSearchUsers(
     {
       q: debouncedQuery || undefined,
       status: statusFilter,
@@ -44,7 +58,7 @@ export default function SearchPage() {
       cursor: usersCursor,
       limit: 20,
     },
-    searchType === "users" && !!(debouncedQuery || statusFilter || ageRangeFilter)
+    searchType === 'users' && !!(debouncedQuery || statusFilter || ageRangeFilter)
   );
 
   const posts = postsData?.posts || [];
@@ -53,7 +67,7 @@ export default function SearchPage() {
   const hasMoreUsers = !!usersData?.next_cursor;
 
   const handleSearchTypeChange = (value: string) => {
-    setSearchType(value as "posts" | "users");
+    setSearchType(value as 'posts' | 'users');
     setPostsCursor(undefined);
     setUsersCursor(undefined);
   };
@@ -65,25 +79,25 @@ export default function SearchPage() {
   };
 
   const handleStatusFilterChange = (value: string) => {
-    setStatusFilter(value === "all" ? undefined : value);
+    setStatusFilter(value === 'all' ? undefined : value);
     setPostsCursor(undefined);
     setUsersCursor(undefined);
   };
 
   const handleAgeRangeFilterChange = (value: string) => {
-    setAgeRangeFilter(value === "all" ? undefined : value);
+    setAgeRangeFilter(value === 'all' ? undefined : value);
     setPostsCursor(undefined);
     setUsersCursor(undefined);
   };
 
   const getStatusLabel = (status: string) => {
     switch (status) {
-      case "IN_LOVE":
-        return "恋愛中";
-      case "HEARTBROKEN":
-        return "失恋中";
-      case "SEEKING":
-        return "探し中";
+      case 'IN_LOVE':
+        return '恋愛中';
+      case 'HEARTBROKEN':
+        return '失恋中';
+      case 'SEEKING':
+        return '探し中';
       default:
         return status;
     }
@@ -91,16 +105,16 @@ export default function SearchPage() {
 
   const getAgeRangeLabel = (ageRange: string) => {
     switch (ageRange) {
-      case "TEENS":
-        return "10代";
-      case "TWENTIES":
-        return "20代";
-      case "THIRTIES":
-        return "30代";
-      case "FORTIES":
-        return "40代";
-      case "FIFTIES_PLUS":
-        return "50代以上";
+      case 'TEENS':
+        return '10代';
+      case 'TWENTIES':
+        return '20代';
+      case 'THIRTIES':
+        return '30代';
+      case 'FORTIES':
+        return '40代';
+      case 'FIFTIES_PLUS':
+        return '50代以上';
       default:
         return ageRange;
     }
@@ -109,7 +123,6 @@ export default function SearchPage() {
   return (
     <div className="container max-w-4xl mx-auto px-4 py-8">
       <div className="mb-6">
-
         {/* 検索フォーム */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 space-y-4">
           <Tabs value={searchType} onValueChange={handleSearchTypeChange}>
@@ -122,7 +135,7 @@ export default function SearchPage() {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
                 type="text"
-                placeholder={searchType === "posts" ? "投稿を検索..." : "ユーザーを検索..."}
+                placeholder={searchType === 'posts' ? '投稿を検索...' : 'ユーザーを検索...'}
                 value={searchQuery}
                 onChange={(e) => handleQueryChange(e.target.value)}
                 className="pl-10"
@@ -131,10 +144,7 @@ export default function SearchPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* ステータスフィルター */}
-              <Select
-                value={statusFilter || "all"}
-                onValueChange={handleStatusFilterChange}
-              >
+              <Select value={statusFilter || 'all'} onValueChange={handleStatusFilterChange}>
                 <SelectTrigger>
                   <SelectValue placeholder="ステータスで絞り込み" />
                 </SelectTrigger>
@@ -147,10 +157,7 @@ export default function SearchPage() {
               </Select>
 
               {/* 年齢範囲フィルター */}
-              <Select
-                value={ageRangeFilter || "all"}
-                onValueChange={handleAgeRangeFilterChange}
-              >
+              <Select value={ageRangeFilter || 'all'} onValueChange={handleAgeRangeFilterChange}>
                 <SelectTrigger>
                   <SelectValue placeholder="年齢で絞り込み" />
                 </SelectTrigger>
@@ -213,7 +220,7 @@ export default function SearchPage() {
                             読み込み中...
                           </>
                         ) : (
-                          "もっと見る"
+                          'もっと見る'
                         )}
                       </Button>
                     </div>
@@ -245,7 +252,9 @@ export default function SearchPage() {
                 <div className="bg-gray-50 rounded-lg p-12">
                   <div className="text-center">
                     <User className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-500">検索条件に一致するユーザーが見つかりませんでした</p>
+                    <p className="text-gray-500">
+                      検索条件に一致するユーザーが見つかりませんでした
+                    </p>
                     <p className="text-gray-400 text-sm mt-2">
                       別のキーワードやフィルターで試してみてください
                     </p>
@@ -259,7 +268,9 @@ export default function SearchPage() {
                         <div className="flex items-center space-x-4">
                           <Avatar className="h-12 w-12">
                             <AvatarImage src={user.avatar_url} alt={user.nickname} />
-                            <AvatarFallback>{user.nickname?.charAt(0)?.toUpperCase()}</AvatarFallback>
+                            <AvatarFallback>
+                              {user.nickname?.charAt(0)?.toUpperCase()}
+                            </AvatarFallback>
                           </Avatar>
                           <div className="flex-1">
                             <h3 className="font-semibold text-gray-900">{user.nickname}</h3>
@@ -293,7 +304,7 @@ export default function SearchPage() {
                             読み込み中...
                           </>
                         ) : (
-                          "もっと見る"
+                          'もっと見る'
                         )}
                       </Button>
                     </div>

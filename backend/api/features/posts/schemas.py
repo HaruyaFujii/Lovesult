@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional
+from typing import Any
 from uuid import UUID
 
 from pydantic import BaseModel
@@ -12,7 +12,7 @@ class PostBase(BaseModel):
 
 
 class PostCreate(PostBase):
-    pass
+    parent_id: UUID | None = None  # For creating replies
 
 
 class PostUpdate(PostBase):
@@ -25,6 +25,10 @@ class PostResponse(PostBase):
     created_at: datetime
     updated_at: datetime
 
+    # Reply-related fields
+    parent_id: UUID | None = None
+    root_id: UUID | None = None
+
     # 投稿時点でのユーザー情報スナップショット
     author_status: str
     author_age_range: str
@@ -35,13 +39,18 @@ class PostResponse(PostBase):
 
     # リプライ関連
     replies_count: int = 0
+    has_replies: bool = False
 
-    user: Optional[UserResponse] = None
+    user: UserResponse | None = None
 
     class Config:
         from_attributes = True
 
 
+class RepliesResponse(BaseModel):
+    replies: Any
+
+
 class TimelineResponse(BaseModel):
-    posts: list[PostResponse]
-    next_cursor: Optional[str] = None
+    posts: Any
+    next_cursor: str | None = None

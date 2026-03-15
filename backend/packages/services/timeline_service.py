@@ -1,12 +1,12 @@
 from datetime import datetime
-from typing import List, Optional, Tuple, Union
 from uuid import UUID
 
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from packages.models.post import Post
-from packages.models.reply import Reply
+
+# from packages.models.reply import Reply  # Replies are now stored in posts table
 from packages.models.user import UserStatus
 from packages.repositories.post_repository import PostRepository
 from packages.repositories.user_repository import UserRepository
@@ -23,18 +23,18 @@ class TimelineService:
     async def _get_replies_count(self, post_id: UUID) -> int:
         """投稿のリプライ数を取得"""
         result = await self.session.execute(
-            select(func.count(Reply.id)).where(Reply.post_id == post_id)
+            select(func.count(Post.id)).where(Post.parent_id == post_id)  # type: ignore
         )
         return result.scalar() or 0
 
     async def get_timeline(
         self,
-        current_user_id: Optional[UUID] = None,
-        status_filter: Optional[str] = None,
-        tab: Optional[str] = None,  # "all" or "following"
-        cursor: Optional[str] = None,
+        current_user_id: UUID | None = None,
+        status_filter: str | None = None,
+        tab: str | None = None,  # "all" or "following"
+        cursor: str | None = None,
         limit: int = 20,
-    ) -> Tuple[List[dict], Optional[str]]:
+    ) -> tuple[list[dict], str | None]:
         cursor_datetime = None
         if cursor:
             cursor_datetime = datetime.fromisoformat(cursor)
@@ -86,8 +86,8 @@ class TimelineService:
         return posts, next_cursor
 
     async def _add_like_status_to_posts(
-        self, posts: List[Post], current_user_id: Optional[UUID]
-    ) -> List[dict]:
+        self, posts: list[Post], current_user_id: UUID | None
+    ) -> list[dict]:
         """投稿リストにログインユーザーのいいね状態を追加"""
         result = []
 
@@ -103,9 +103,7 @@ class TimelineService:
 
             # いいね状態を追加
             if current_user_id:
-                post_dict["is_liked"] = await self.like_service.is_liked(
-                    current_user_id, post.id
-                )
+                post_dict["is_liked"] = await self.like_service.is_liked(current_user_id, post.id)
             else:
                 post_dict["is_liked"] = False
 

@@ -1,22 +1,18 @@
 from datetime import datetime
-from typing import List, Optional, Tuple
 from uuid import UUID
 
-from sqlalchemy import and_, desc, func, select, text
+from sqlalchemy import desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
 from packages.models.conversation import Conversation
 from packages.models.conversation_participant import ConversationParticipant
-from packages.models.direct_message import DirectMessage
-from packages.models.user import User
 
 
 class ConversationRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def get_by_id(self, conversation_id: UUID) -> Optional[Conversation]:
+    async def get_by_id(self, conversation_id: UUID) -> Conversation | None:
         result = await self.session.execute(
             select(Conversation).where(Conversation.id == conversation_id)
         )
@@ -35,9 +31,7 @@ class ConversationRepository:
         await self.session.refresh(conversation)
         return conversation
 
-    async def find_conversation(
-        self, user_id: UUID, partner_id: UUID
-    ) -> Optional[Conversation]:
+    async def find_conversation(self, user_id: UUID, partner_id: UUID) -> Conversation | None:
         """2人の既存会話を検索"""
         # サブクエリを使って、両方のユーザーが参加している会話を検索
         query = (
@@ -57,9 +51,9 @@ class ConversationRepository:
     async def get_user_conversations(
         self,
         user_id: UUID,
-        cursor: Optional[datetime] = None,
+        cursor: datetime | None = None,
         limit: int = 20,
-    ) -> Tuple[List[Conversation], Optional[str]]:
+    ) -> tuple[list[Conversation], str | None]:
         """ユーザーの会話一覧を取得"""
         query = (
             select(Conversation)

@@ -1,10 +1,10 @@
 from datetime import datetime
-from typing import Optional
 from uuid import UUID
+
 from pydantic import BaseModel
 
-from api.features.users.schemas import UserResponse
 from api.features.posts.schemas import PostResponse
+from api.features.users.schemas import UserResponse
 
 
 class NotificationResponse(BaseModel):
@@ -14,9 +14,9 @@ class NotificationResponse(BaseModel):
     created_at: datetime
 
     # 関連データ
-    actor: Optional[UserResponse] = None
-    post: Optional[PostResponse] = None
-    reply_id: Optional[UUID] = None  # リプライの詳細は必要に応じて
+    actor: UserResponse | None = None
+    post: PostResponse | None = None
+    reply_id: UUID | None = None  # リプライの詳細は必要に応じて
 
     class Config:
         from_attributes = True
@@ -24,7 +24,7 @@ class NotificationResponse(BaseModel):
 
 class NotificationListResponse(BaseModel):
     notifications: list[NotificationResponse]
-    next_cursor: Optional[str] = None
+    next_cursor: str | None = None
 
 
 class UnreadCountResponse(BaseModel):

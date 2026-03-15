@@ -50,9 +50,12 @@ export function useConversations(cursor?: string, limit: number = 20) {
       const params: any = { limit };
       if (cursor) params.cursor = cursor;
 
-      const response = await customInstance<{ data: ConversationListResponse }>('/api/v1/conversations', {
-        params,
-      });
+      const response = await customInstance<{ data: ConversationListResponse }>(
+        '/api/v1/conversations',
+        {
+          params,
+        }
+      );
       return response.data;
     },
   });
@@ -107,12 +110,12 @@ export function useSendMessage(conversationId: string) {
       // 進行中のクエリをキャンセル（正確なクエリキーでキャンセル）
       await queryClient.cancelQueries({
         queryKey: ['messages', conversationId],
-        exact: false // cursorやlimitが含まれるクエリもキャンセル
+        exact: false, // cursorやlimitが含まれるクエリもキャンセル
       });
 
       // 現在のデータを取得してバックアップ（実際に使用されているキーから取得）
       const messagesQueryState = queryClient.getQueriesData<MessageListResponse>({
-        queryKey: ['messages', conversationId]
+        queryKey: ['messages', conversationId],
       });
       const previousMessages = messagesQueryState.length > 0 ? messagesQueryState[0][1] : undefined;
 
@@ -149,7 +152,7 @@ export function useSendMessage(conversationId: string) {
           if (!old) return { messages: [{ ...serverMessage, status: 'sent' }], cursor: null };
 
           // 一時メッセージを除去してサーバーメッセージを追加
-          const filteredMessages = old.messages.filter(msg => !msg.id.startsWith('temp-'));
+          const filteredMessages = old.messages.filter((msg) => !msg.id.startsWith('temp-'));
           return {
             ...old,
             messages: [{ ...serverMessage, status: 'sent' }, ...filteredMessages],
@@ -165,10 +168,8 @@ export function useSendMessage(conversationId: string) {
             if (!old) return old;
             return {
               ...old,
-              messages: old.messages.map(msg =>
-                msg.id === serverMessage.id
-                  ? { ...msg, status: undefined }
-                  : msg
+              messages: old.messages.map((msg) =>
+                msg.id === serverMessage.id ? { ...msg, status: undefined } : msg
               ),
             };
           }
@@ -187,7 +188,7 @@ export function useSendMessage(conversationId: string) {
 
           return {
             ...old,
-            messages: old.messages.map(msg =>
+            messages: old.messages.map((msg) =>
               msg.id.startsWith('temp-') && msg.content === content
                 ? { ...msg, status: 'error' as const }
                 : msg

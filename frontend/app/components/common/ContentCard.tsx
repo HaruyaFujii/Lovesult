@@ -92,9 +92,7 @@ export function ContentCard({
       {/* Avatar */}
       <Avatar className="h-10 w-10 flex-shrink-0">
         <AvatarImage src={author.avatar_url || undefined} />
-        <AvatarFallback className="text-xs">
-          {author.nickname?.charAt(0) || 'U'}
-        </AvatarFallback>
+        <AvatarFallback className="text-xs">{author.nickname?.charAt(0) || 'U'}</AvatarFallback>
       </Avatar>
 
       {/* Content */}
@@ -102,17 +100,15 @@ export function ContentCard({
         {/* Header */}
         <div className="flex items-start justify-between gap-2 mb-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-semibold text-sm">
-              {author.nickname || 'Unknown'}
-            </span>
+            <span className="font-semibold text-sm">{author.nickname || 'Unknown'}</span>
             {author.status && (
-              <span className={cn("text-xs px-1.5 py-0.5 rounded-full", getStatusColor(author.status))}>
+              <span
+                className={cn('text-xs px-1.5 py-0.5 rounded-full', getStatusColor(author.status))}
+              >
                 {getUserStatusLabel(author.status as any)}
               </span>
             )}
-            <span className="text-xs text-gray-500">
-              {formatDistanceToNowJST(createdAt)}
-            </span>
+            <span className="text-xs text-gray-500">{formatDistanceToNowJST(createdAt)}</span>
           </div>
 
           {/* Actions dropdown */}

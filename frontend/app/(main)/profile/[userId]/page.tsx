@@ -10,9 +10,13 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Calendar, Users, MessageCircle, Heart, Star } from 'lucide-react';
-import Link from 'next/link';
 import { formatDistanceToNowJST } from '@/lib/utils/date';
-import { getUserStatusLabel, getGenderLabel, getAgeRangeLabel, getPersonalityTypeLabel } from '@/lib/utils/enum-labels';
+import {
+  getUserStatusLabel,
+  getGenderLabel,
+  getAgeRangeLabel,
+  getPersonalityTypeLabel,
+} from '@/lib/utils/enum-labels';
 
 export default function UserProfilePage() {
   const params = useParams();
@@ -46,7 +50,6 @@ export default function UserProfilePage() {
     );
   }
 
-
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* プロフィールヘッダー */}
@@ -55,12 +58,8 @@ export default function UserProfilePage() {
           <div className="flex items-start gap-6">
             {/* アバター */}
             <Avatar className="h-20 w-20">
-              <AvatarImage
-                src={(profile as any)?.data?.avatar_url || undefined}
-              />
-              <AvatarFallback>
-                {(profile as any)?.data?.nickname?.charAt(0) || "U"}
-              </AvatarFallback>
+              <AvatarImage src={(profile as any)?.data?.avatar_url || undefined} />
+              <AvatarFallback>{(profile as any)?.data?.nickname?.charAt(0) || 'U'}</AvatarFallback>
             </Avatar>
 
             {/* プロフィール情報 */}
@@ -68,7 +67,7 @@ export default function UserProfilePage() {
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900">
-                    {(profile as any)?.data?.nickname || "名前未設定"}
+                    {(profile as any)?.data?.nickname || '名前未設定'}
                   </h1>
                   <p className="text-gray-600">{(profile as any)?.data?.email}</p>
                 </div>
@@ -96,9 +95,7 @@ export default function UserProfilePage() {
                   </Badge>
                 )}
                 {(profile as any)?.data?.gender && (
-                  <Badge variant="outline">
-                    {getGenderLabel((profile as any).data.gender)}
-                  </Badge>
+                  <Badge variant="outline">{getGenderLabel((profile as any).data.gender)}</Badge>
                 )}
               </div>
 
@@ -116,13 +113,13 @@ export default function UserProfilePage() {
                       <h3 className="font-semibold text-gray-900">
                         {personalityResult.primary_type.name}
                       </h3>
-                      <p className="text-sm text-gray-600">
-                        恋愛タイプ診断結果
-                      </p>
+                      <p className="text-sm text-gray-600">恋愛タイプ診断結果</p>
                       {personalityResult.secondary_type && (
                         <div className="flex items-center gap-1 mt-1">
                           <span className="text-lg">{personalityResult.secondary_type.emoji}</span>
-                          <span className="text-xs text-gray-500">サブ: {personalityResult.secondary_type.name}</span>
+                          <span className="text-xs text-gray-500">
+                            サブ: {personalityResult.secondary_type.name}
+                          </span>
                         </div>
                       )}
                     </div>
@@ -131,9 +128,7 @@ export default function UserProfilePage() {
               ) : (
                 <div className="bg-gray-50 rounded-lg p-3 mb-4 text-center">
                   <Heart className="h-6 w-6 text-gray-400 mx-auto mb-1" />
-                  <p className="text-sm text-gray-500">
-                    まだ性格診断を受けていません
-                  </p>
+                  <p className="text-sm text-gray-500">まだ性格診断を受けていません</p>
                 </div>
               )}
 
@@ -153,9 +148,7 @@ export default function UserProfilePage() {
                 </div>
                 <div className="flex items-center gap-1">
                   <Calendar className="h-4 w-4" />
-                  <span>
-                    {formatDistanceToNowJST((profile as any)?.data?.created_at)}
-                  </span>
+                  <span>{formatDistanceToNowJST((profile as any)?.data?.created_at)}</span>
                 </div>
               </div>
             </div>
@@ -181,9 +174,7 @@ export default function UserProfilePage() {
                   <h3 className="text-xl font-bold text-gray-900">
                     {personalityResult.primary_type.name}
                   </h3>
-                  <p className="text-gray-700 mt-1">
-                    {personalityResult.primary_type.description}
-                  </p>
+                  <p className="text-gray-700 mt-1">{personalityResult.primary_type.description}</p>
                 </div>
               </div>
 
@@ -203,7 +194,10 @@ export default function UserProfilePage() {
                 <h4 className="font-semibold mb-3">性格スコア</h4>
                 <div className="grid grid-cols-2 gap-3">
                   {Object.entries(personalityResult.scores).map(([type, score]) => (
-                    <div key={type} className="flex items-center justify-between bg-gray-50 rounded p-2">
+                    <div
+                      key={type}
+                      className="flex items-center justify-between bg-gray-50 rounded p-2"
+                    >
                       <span className="text-sm">{getPersonalityTypeLabel(type)}</span>
                       <div className="flex items-center gap-2">
                         <div className="w-16 bg-gray-200 rounded-full h-2">
@@ -229,9 +223,7 @@ export default function UserProfilePage() {
           <CardTitle>投稿</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center text-gray-500 py-8">
-            投稿一覧は実装予定です
-          </div>
+          <div className="text-center text-gray-500 py-8">投稿一覧は実装予定です</div>
         </CardContent>
       </Card>
     </div>

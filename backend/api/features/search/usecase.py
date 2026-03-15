@@ -1,13 +1,12 @@
-from datetime import datetime
-from typing import List, Optional, Tuple
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from packages.services.search_service import SearchService
-from .schemas import SearchFilters, PostSearchResponse, UserSearchResponse
 from api.features.posts.schemas import PostResponse
 from api.features.users.schemas import UserResponse
+from packages.services.search_service import SearchService
+
+from .schemas import PostSearchResponse, SearchFilters, UserSearchResponse
 
 
 class SearchUseCase:
@@ -16,11 +15,11 @@ class SearchUseCase:
 
     async def search_posts(
         self,
-        query: Optional[str] = None,
-        filters: Optional[SearchFilters] = None,
-        current_user_id: Optional[UUID] = None,
-        cursor: Optional[str] = None,
-        limit: int = 20
+        query: str | None = None,
+        filters: SearchFilters | None = None,
+        current_user_id: UUID | None = None,
+        cursor: str | None = None,
+        limit: int = 20,
     ) -> PostSearchResponse:
         """
         投稿を検索する
@@ -46,24 +45,21 @@ class SearchUseCase:
             age_range_filter=age_range_filter,
             current_user_id=current_user_id,
             cursor=cursor,
-            limit=limit
+            limit=limit,
         )
 
         # レスポンスに変換
         post_responses = [PostResponse(**post) for post in posts]
 
-        return PostSearchResponse(
-            posts=post_responses,
-            next_cursor=next_cursor
-        )
+        return PostSearchResponse(posts=post_responses, next_cursor=next_cursor)
 
     async def search_users(
         self,
-        query: Optional[str] = None,
-        filters: Optional[SearchFilters] = None,
-        current_user_id: Optional[UUID] = None,
-        cursor: Optional[str] = None,
-        limit: int = 20
+        query: str | None = None,
+        filters: SearchFilters | None = None,
+        current_user_id: UUID | None = None,
+        cursor: str | None = None,
+        limit: int = 20,
     ) -> UserSearchResponse:
         """
         ユーザーを検索する
@@ -89,13 +85,10 @@ class SearchUseCase:
             age_range_filter=age_range_filter,
             current_user_id=current_user_id,
             cursor=cursor,
-            limit=limit
+            limit=limit,
         )
 
         # レスポンスに変換
         user_responses = [UserResponse(**user) for user in users]
 
-        return UserSearchResponse(
-            users=user_responses,
-            next_cursor=next_cursor
-        )
+        return UserSearchResponse(users=user_responses, next_cursor=next_cursor)

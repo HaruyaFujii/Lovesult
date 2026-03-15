@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 
 interface Options {
-  threshold?: number;  // スワイプ判定の閾値（px）
+  threshold?: number; // スワイプ判定の閾値（px）
   enabled?: boolean;
 }
 

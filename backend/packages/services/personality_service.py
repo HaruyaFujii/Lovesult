@@ -1,11 +1,9 @@
 from datetime import datetime
-from typing import Dict, List, Optional
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from packages.models.personality_result import PersonalityResult
-from packages.models.user import User
 from packages.repositories.personality_repository import PersonalityRepository
 from packages.repositories.user_repository import UserRepository
 
@@ -16,7 +14,7 @@ class PersonalityService:
         self.personality_repo = PersonalityRepository(session)
         self.user_repo = UserRepository(session)
 
-    async def get_result(self, user_id: UUID) -> Optional[PersonalityResult]:
+    async def get_result(self, user_id: UUID) -> PersonalityResult | None:
         """ユーザーの診断結果を取得"""
         return await self.personality_repo.get_by_user_id(user_id)
 
@@ -24,9 +22,9 @@ class PersonalityService:
         self,
         user_id: UUID,
         primary_type: str,
-        secondary_type: Optional[str],
-        scores: Dict[str, int],
-        answers: List[int],
+        secondary_type: str | None,
+        scores: dict[str, int],
+        answers: list[int],
     ) -> PersonalityResult:
         """診断結果を保存"""
         # 既存の結果があるか確認

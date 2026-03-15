@@ -60,11 +60,11 @@ export default function ReplyDetailPage({ params }: ReplyDetailPageProps) {
   };
 
   const handleReplyClick = (replyId: string) => {
-    const targetReply = replies.find(r => r.id === replyId);
+    const targetReply = replies.find((r) => r.id === replyId);
     if (targetReply) {
       setReplyingTo({
         id: replyId,
-        nickname: targetReply.user?.nickname || 'Unknown'
+        nickname: targetReply.user?.nickname || 'Unknown',
       });
       // Scroll to reply form
       setTimeout(() => {
@@ -81,7 +81,9 @@ export default function ReplyDetailPage({ params }: ReplyDetailPageProps) {
   };
 
   const handleCreateReply = async (content: string) => {
-    createReply({ content, parentId: replyingTo?.id });
+    // If replyingTo is set, use that ID as parentId, otherwise use the current reply ID
+    const parentId = replyingTo?.id || resolvedParams.id;
+    createReply({ content, parentId });
     setReplyingTo(null);
   };
 
@@ -167,15 +169,13 @@ export default function ReplyDetailPage({ params }: ReplyDetailPageProps) {
           ))}
 
           {replies.length === 0 && !repliesLoading && (
-            <div className="text-center py-12 text-gray-500">
-              まだリプライはありません
-            </div>
+            <div className="text-center py-12 text-gray-500">まだリプライはありません</div>
           )}
         </div>
       </div>
 
       {/* Reply Form (Fixed at bottom) */}
-      {user && (
+      {(user || currentUser) && (
         <div
           id="main-reply-form"
           className="fixed bottom-0 left-0 right-0 border-t border-gray-200 bg-white safe-area-bottom z-10"
@@ -183,9 +183,7 @@ export default function ReplyDetailPage({ params }: ReplyDetailPageProps) {
           <div className="max-w-2xl mx-auto p-4">
             {replyingTo && (
               <div className="flex items-center justify-between mb-2 p-2 bg-gray-50 rounded">
-                <span className="text-sm text-gray-600">
-                  @{replyingTo.nickname}さんに返信
-                </span>
+                <span className="text-sm text-gray-600">@{replyingTo.nickname}さんに返信</span>
                 <button
                   onClick={() => setReplyingTo(null)}
                   className="text-sm text-gray-500 hover:text-gray-700"
@@ -196,11 +194,7 @@ export default function ReplyDetailPage({ params }: ReplyDetailPageProps) {
             )}
             <ReplyForm
               onSubmit={handleCreateReply}
-              placeholder={
-                replyingTo
-                  ? `@${replyingTo.nickname}さんに返信`
-                  : 'リプライを追加...'
-              }
+              placeholder={replyingTo ? `@${replyingTo.nickname}さんに返信` : 'リプライを追加...'}
             />
           </div>
         </div>

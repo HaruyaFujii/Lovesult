@@ -1,4 +1,3 @@
-from typing import Optional
 from pydantic import BaseModel
 
 from api.features.users.schemas import UserResponse
@@ -11,4 +10,4 @@ class FollowStatusResponse(BaseModel):
 
 class FollowListResponse(BaseModel):
     users: list[UserResponse]
-    next_cursor: Optional[str] = None
+    next_cursor: str | None = None

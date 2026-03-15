@@ -30,7 +30,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const {
           data: { user },
         } = await supabase.auth.getUser();
-        console.log('Auth state:', { user: user?.email || 'No user' });
         if (isMounted) {
           setUser(user);
           setLoading(false);
@@ -70,7 +69,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isMounted = false;
       subscription.unsubscribe();
     };
-  }, [supabase]);
+  }, [supabase, queryClient, user?.id]);
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({
@@ -97,17 +96,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const getAccessToken = async (): Promise<string | null> => {
     try {
-      const { data: { session }, error } = await supabase.auth.getSession();
+      const {
+        data: { session },
+        error,
+      } = await supabase.auth.getSession();
       if (error) {
         console.error('Token retrieval error:', error);
         return null;
       }
       const token = session?.access_token || null;
-      console.log('AuthProvider getAccessToken:', {
-        hasToken: !!token,
-        tokenLength: token?.length || 0,
-        userEmail: session?.user?.email
-      });
       return token;
     } catch (error) {
       console.error('Failed to get access token:', error);

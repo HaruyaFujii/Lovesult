@@ -1,14 +1,14 @@
 from datetime import datetime
-from typing import Optional
 from uuid import UUID
 
 from pydantic import BaseModel, Field
 
-from packages.models.report import ReportType, ReportStatus
+from packages.models.report import ReportStatus, ReportType
 
 
 class ReportCreate(BaseModel):
     """報告作成用スキーマ"""
+
     target_type: str = Field(..., pattern="^(post|reply|user)$")
     target_id: UUID
     report_type: ReportType
@@ -17,21 +17,22 @@ class ReportCreate(BaseModel):
 
 class ReportResponse(BaseModel):
     """報告レスポンススキーマ"""
+
     id: UUID
     reporter_id: UUID
     report_type: ReportType
     reason: str
 
     # 報告対象
-    post_id: Optional[UUID] = None
-    reply_id: Optional[UUID] = None
-    user_id: Optional[UUID] = None
+    post_id: UUID | None = None
+    reply_id: UUID | None = None
+    user_id: UUID | None = None
 
     # ステータス
     status: ReportStatus
-    reviewed_at: Optional[datetime] = None
-    reviewer_id: Optional[UUID] = None
-    reviewer_comment: Optional[str] = None
+    reviewed_at: datetime | None = None
+    reviewer_id: UUID | None = None
+    reviewer_comment: str | None = None
 
     created_at: datetime
     updated_at: datetime
@@ -42,6 +43,7 @@ class ReportResponse(BaseModel):
 
 class ReportListResponse(BaseModel):
     """報告リストレスポンススキーマ"""
+
     reports: list[ReportResponse]
     total: int
     has_more: bool

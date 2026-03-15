@@ -1,10 +1,10 @@
 from uuid import UUID
-from typing import Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from packages.models.report import Report, ReportType, ReportStatus
+from packages.models.report import ReportStatus, ReportType
 from packages.services.report_service import ReportService
+
 from .schemas import ReportResponse
 
 
@@ -34,7 +34,7 @@ class ReportUseCase:
 
         return ReportResponse.model_validate(report)
 
-    async def get_report(self, report_id: UUID) -> Optional[ReportResponse]:
+    async def get_report(self, report_id: UUID) -> ReportResponse | None:
         """報告を取得する"""
         report = await self.report_service.get_report(report_id)
         if not report:
@@ -43,9 +43,7 @@ class ReportUseCase:
         return ReportResponse.model_validate(report)
 
     async def get_pending_reports(
-        self,
-        limit: int = 20,
-        offset: int = 0
+        self, limit: int = 20, offset: int = 0
     ) -> tuple[list[ReportResponse], int, bool]:
         """保留中の報告を取得する"""
         from packages.repositories.report_repository import ReportRepository
@@ -56,7 +54,7 @@ class ReportUseCase:
         reports = await repository.get_reports_by_status(
             status=ReportStatus.PENDING,
             limit=limit + 1,  # has_moreを判定するため
-            offset=offset
+            offset=offset,
         )
 
         has_more = len(reports) > limit
@@ -64,10 +62,7 @@ class ReportUseCase:
             reports = reports[:limit]
 
         # レスポンスに変換
-        response_reports = [
-            ReportResponse.model_validate(report)
-            for report in reports
-        ]
+        response_reports = [ReportResponse.model_validate(report) for report in reports]
 
         # 総数を取得
         total = await repository.count_reports_by_status(ReportStatus.PENDING)

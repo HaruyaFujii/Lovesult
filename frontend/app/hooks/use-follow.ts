@@ -1,23 +1,25 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { customInstance } from '@/lib/api/customInstance';
 
+interface FollowResponse {
+  success: boolean;
+  message?: string;
+}
+
 export const useFollow = () => {
   const queryClient = useQueryClient();
 
   const followMutation = useMutation({
     mutationFn: async ({ userId }: { userId: string }) => {
-      const response = await customInstance<{ data: any }>(
-        `/api/v1/users/${userId}/follow`,
-        {
-          method: 'POST',
-        }
-      );
+      const response = await customInstance<{ data: FollowResponse }>(`/api/v1/users/${userId}/follow`, {
+        method: 'POST',
+      });
       return response.data;
     },
     onSuccess: (_, variables) => {
       // フォロー状態のクエリを無効化
       queryClient.invalidateQueries({
-        queryKey: [`/api/v1/users/${variables.userId}/follow-status`]
+        queryKey: [`/api/v1/users/${variables.userId}/follow-status`],
       });
       // ユーザープロフィール情報を無効化（フォロワー・フォロー数更新のため）
       queryClient.invalidateQueries({ queryKey: ['users'] });
@@ -35,18 +37,15 @@ export const useFollow = () => {
 
   const unfollowMutation = useMutation({
     mutationFn: async ({ userId }: { userId: string }) => {
-      const response = await customInstance<{ data: any }>(
-        `/api/v1/users/${userId}/follow`,
-        {
-          method: 'DELETE',
-        }
-      );
+      const response = await customInstance<{ data: FollowResponse }>(`/api/v1/users/${userId}/follow`, {
+        method: 'DELETE',
+      });
       return response.data;
     },
     onSuccess: (_, variables) => {
       // フォロー状態のクエリを無効化
       queryClient.invalidateQueries({
-        queryKey: [`/api/v1/users/${variables.userId}/follow-status`]
+        queryKey: [`/api/v1/users/${variables.userId}/follow-status`],
       });
       // ユーザープロフィール情報を無効化（フォロワー・フォロー数更新のため）
       queryClient.invalidateQueries({ queryKey: ['users'] });

@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import List, Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -9,9 +8,9 @@ from packages.repositories.banned_word_repository import BannedWordRepository
 @dataclass
 class FilterResult:
     is_safe: bool
-    reason: Optional[str] = None
-    severity: Optional[str] = None
-    matched_words: List[str] = None
+    reason: str | None = None
+    severity: str | None = None
+    matched_words: list[str] = None
 
 
 class ContentFilterService:
@@ -24,14 +23,16 @@ class ContentFilterService:
 
         found_words = []
         max_severity = None
-        severity_order = {'high': 3, 'medium': 2, 'low': 1}
+        severity_order = {"high": 3, "medium": 2, "low": 1}
 
         for banned in banned_words:
             if banned.word.lower() in content.lower():
                 found_words.append(banned)
 
                 # 最も高い severity を記録
-                if max_severity is None or severity_order.get(banned.severity, 0) > severity_order.get(max_severity, 0):
+                if max_severity is None or severity_order.get(
+                    banned.severity, 0
+                ) > severity_order.get(max_severity, 0):
                     max_severity = banned.severity
 
         if not found_words:
@@ -41,5 +42,5 @@ class ContentFilterService:
             is_safe=False,
             reason="inappropriate_content",
             severity=max_severity,
-            matched_words=[w.word for w in found_words]  # ログ用、ユーザーには詳細を表示しない
+            matched_words=[w.word for w in found_words],  # ログ用、ユーザーには詳細を表示しない
         )

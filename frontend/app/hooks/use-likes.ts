@@ -1,12 +1,17 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { customInstance } from '@/lib/api/customInstance';
 
+interface LikeResponse {
+  success: boolean;
+  message?: string;
+}
+
 export const useLikePost = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async ({ postId }: { postId: string }) => {
-      const response = await customInstance<{ data: any }>(`/api/v1/posts/${postId}/like`, {
+      const response = await customInstance<{ data: LikeResponse }>(`/api/v1/posts/${postId}/like`, {
         method: 'POST',
       });
       return response.data;
@@ -22,7 +27,7 @@ export const useUnlikePost = () => {
 
   return useMutation({
     mutationFn: async ({ postId }: { postId: string }) => {
-      const response = await customInstance<{ data: any }>(`/api/v1/posts/${postId}/like`, {
+      const response = await customInstance<{ data: LikeResponse }>(`/api/v1/posts/${postId}/like`, {
         method: 'DELETE',
       });
       return response.data;
@@ -38,7 +43,7 @@ export const useLikeReply = () => {
 
   return useMutation({
     mutationFn: async ({ replyId }: { replyId: string }) => {
-      const response = await customInstance<{ data: any }>(`/api/v1/replies/${replyId}/like`, {
+      const response = await customInstance<{ data: LikeResponse }>(`/api/v1/posts/${replyId}/like`, {
         method: 'POST',
       });
       return response.data;
@@ -54,7 +59,7 @@ export const useUnlikeReply = () => {
 
   return useMutation({
     mutationFn: async ({ replyId }: { replyId: string }) => {
-      const response = await customInstance<{ data: any }>(`/api/v1/replies/${replyId}/like`, {
+      const response = await customInstance<{ data: LikeResponse }>(`/api/v1/posts/${replyId}/like`, {
         method: 'DELETE',
       });
       return response.data;

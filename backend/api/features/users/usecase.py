@@ -1,10 +1,10 @@
-from typing import Optional
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from packages.services.user_service import UserService
 from packages.services.storage_service import StorageService
+from packages.services.user_service import UserService
+
 from .schemas import UserUpdate
 
 
@@ -70,7 +70,7 @@ class UserUseCase:
 
         return user_dict
 
-    async def get_all_users(self, limit: int = 50, cursor: Optional[str] = None):
+    async def get_all_users(self, limit: int = 50, cursor: str | None = None):
         """全ユーザーを取得"""
         users = await self.service.get_all_users(limit=limit, cursor=cursor)
 
@@ -94,18 +94,11 @@ class UserUseCase:
 
         return result
 
-    async def upload_avatar(
-        self,
-        user_id: UUID,
-        file_data: bytes,
-        content_type: str
-    ):
+    async def upload_avatar(self, user_id: UUID, file_data: bytes, content_type: str):
         """アバター画像をアップロードしてプロフィールを更新"""
         # Supabase Storageにアップロード
         avatar_url = await self.storage_service.upload_avatar(
-            user_id=user_id,
-            file_data=file_data,
-            content_type=content_type
+            user_id=user_id, file_data=file_data, content_type=content_type
         )
 
         # ユーザープロフィールのアバターURLを更新

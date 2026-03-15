@@ -1,10 +1,8 @@
 from datetime import datetime
-from typing import List, Optional, Tuple
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from packages.models.post import Post
 from packages.models.user import UserStatus
 from packages.repositories.post_repository import PostRepository
 from packages.repositories.user_repository import UserRepository
@@ -19,13 +17,13 @@ class SearchService:
 
     async def search_posts(
         self,
-        query: Optional[str] = None,
-        status_filter: Optional[str] = None,
-        age_range_filter: Optional[str] = None,
-        current_user_id: Optional[UUID] = None,
-        cursor: Optional[str] = None,
-        limit: int = 20
-    ) -> Tuple[List[dict], Optional[str]]:
+        query: str | None = None,
+        status_filter: str | None = None,
+        age_range_filter: str | None = None,
+        current_user_id: UUID | None = None,
+        cursor: str | None = None,
+        limit: int = 20,
+    ) -> tuple[list[dict], str | None]:
         """
         投稿を検索する
 
@@ -51,7 +49,7 @@ class SearchService:
             age_range_filter=age_range_filter,
             exclude_user_id=current_user_id,
             cursor=cursor_datetime,
-            limit=limit
+            limit=limit,
         )
 
         # いいね・ブックマーク状態を追加
@@ -77,13 +75,13 @@ class SearchService:
 
     async def search_users(
         self,
-        query: Optional[str] = None,
-        status_filter: Optional[str] = None,
-        age_range_filter: Optional[str] = None,
-        current_user_id: Optional[UUID] = None,
-        cursor: Optional[str] = None,
-        limit: int = 20
-    ) -> Tuple[List[dict], Optional[str]]:
+        query: str | None = None,
+        status_filter: str | None = None,
+        age_range_filter: str | None = None,
+        current_user_id: UUID | None = None,
+        cursor: str | None = None,
+        limit: int = 20,
+    ) -> tuple[list[dict], str | None]:
         """
         ユーザーを検索する
 
@@ -109,7 +107,7 @@ class SearchService:
             age_range_filter=age_range_filter,
             exclude_user_id=current_user_id,
             cursor=cursor_datetime,
-            limit=limit
+            limit=limit,
         )
 
         # ユーザー情報を辞書形式に変換

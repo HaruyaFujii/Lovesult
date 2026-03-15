@@ -10,6 +10,7 @@ if TYPE_CHECKING:
 
 class DirectMessageBase(SQLModel):
     """DM基本モデル"""
+
     conversation_id: UUID = Field(foreign_key="conversations.id")
     sender_id: UUID = Field(foreign_key="users.id")
     content: str = Field(max_length=1000)
@@ -17,6 +18,7 @@ class DirectMessageBase(SQLModel):
 
 class DirectMessage(DirectMessageBase, table=True):
     """DMテーブル"""
+
     __tablename__ = "direct_messages"
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)

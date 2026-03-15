@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/client';
 import { Reply } from '@/types';
 import { useAuth } from './useAuth';
 import { useCurrentUser } from './use-user';
+import { getReplies, createPost } from '@/lib/api/generated/endpoints/posts/posts';
 
 interface UseRepliesOptions {
   postId: string;
@@ -22,27 +23,32 @@ export const useReplies = ({ postId, enabled = true }: UseRepliesOptions) => {
   const [optimisticReplies, setOptimisticReplies] = useState<Reply[]>([]);
 
   // Fetch replies
-  const { data: replies = [], isLoading, refetch } = useQuery({
+  const {
+    data: replies = [],
+    isLoading,
+    refetch,
+  } = useQuery({
     queryKey: ['replies', postId],
     queryFn: async () => {
       const supabase = createClient();
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
-      const response = await fetch(`/api/v1/posts/${postId}/replies`, {
-        headers: session?.access_token
-          ? { Authorization: `Bearer ${session.access_token}` }
-          : {},
+      const response = await getReplies(postId, {
+        headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {},
       });
 
-      if (!response.ok) {
+      if (response.status !== 200) {
         throw new Error('Failed to fetch replies');
       }
 
-      const data = await response.json();
       // Ensure all replies have the post_id
-      const repliesWithPostId = (data.replies || []).map((reply: Reply) => ({
+      const responseData = response.data as any;
+      const replies = responseData?.replies || responseData || [];
+      const repliesWithPostId = (Array.isArray(replies) ? replies : []).map((reply: any) => ({
         ...reply,
-        post_id: reply.post_id || postId,
+        post_id: reply.root_id || reply.post_id || postId, // Map root_id to post_id for compatibility
       }));
       return repliesWithPostId as Reply[];
     },
@@ -57,22 +63,25 @@ export const useReplies = ({ postId, enabled = true }: UseRepliesOptions) => {
   const createReplyMutation = useMutation({
     mutationFn: async ({ content, parentId }: CreateReplyParams) => {
       const supabase = createClient();
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
-      const response = await fetch(`/api/v1/posts/${postId}/replies`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session?.access_token}`,
+      const response = await createPost(
+        {
+          content,
+          parent_id: parentId, // Use the provided parentId directly
         },
-        body: JSON.stringify({ content, parent_id: parentId }),
-      });
+        {
+          headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {},
+        }
+      );
 
-      if (!response.ok) {
+      if (response.status !== 201) {
         throw new Error('Failed to create reply');
       }
 
-      return response.json();
+      return response.data;
     },
     onMutate: async ({ content, parentId }) => {
       // Create optimistic reply
@@ -83,22 +92,24 @@ export const useReplies = ({ postId, enabled = true }: UseRepliesOptions) => {
         post_id: postId, // Ensure post_id is set
         parent_id: parentId,
         created_at: new Date().toISOString(),
-        user: currentUser ? {
-          id: currentUser.id,
-          email: currentUser.email || user?.email || '',
-          nickname: currentUser.nickname || 'Unknown',
-          avatar_url: currentUser.avatar_url || undefined,
-          bio: currentUser.bio || undefined,
-          status: currentUser.status,
-          gender: currentUser.gender,
-          age_range: currentUser.age_range,
-          created_at: currentUser.created_at || new Date().toISOString(),
-        } : {
-          id: user?.id || '',
-          email: user?.email || '',
-          nickname: 'Unknown',
-          created_at: new Date().toISOString(),
-        },
+        user: currentUser
+          ? {
+              id: currentUser.id,
+              email: currentUser.email || user?.email || '',
+              nickname: currentUser.nickname || 'Unknown',
+              avatar_url: currentUser.avatar_url || undefined,
+              bio: currentUser.bio || undefined,
+              status: currentUser.status,
+              gender: currentUser.gender,
+              age_range: currentUser.age_range,
+              created_at: currentUser.created_at || new Date().toISOString(),
+            }
+          : {
+              id: user?.id || '',
+              email: user?.email || '',
+              nickname: 'Unknown',
+              created_at: new Date().toISOString(),
+            },
         likes_count: 0,
         replies_count: 0,
         is_liked: false,
@@ -106,12 +117,12 @@ export const useReplies = ({ postId, enabled = true }: UseRepliesOptions) => {
         _optimistic: true,
       };
 
-      setOptimisticReplies(prev => [...prev, optimisticReply]);
+      setOptimisticReplies((prev) => [...prev, optimisticReply]);
       return { optimisticReply };
     },
     onSuccess: (data, variables, context) => {
       // Remove optimistic reply and add real one
-      setOptimisticReplies(prev => prev.filter(r => r.id !== context?.optimisticReply.id));
+      setOptimisticReplies((prev) => prev.filter((r) => r.id !== context?.optimisticReply.id));
 
       // Invalidate queries
       queryClient.invalidateQueries({ queryKey: ['replies', postId] });
@@ -121,7 +132,7 @@ export const useReplies = ({ postId, enabled = true }: UseRepliesOptions) => {
     onError: (error, variables, context) => {
       // Remove optimistic reply on error
       if (context?.optimisticReply) {
-        setOptimisticReplies(prev => prev.filter(r => r.id !== context.optimisticReply.id));
+        setOptimisticReplies((prev) => prev.filter((r) => r.id !== context.optimisticReply.id));
       }
     },
   });
@@ -130,9 +141,11 @@ export const useReplies = ({ postId, enabled = true }: UseRepliesOptions) => {
   const deleteReplyMutation = useMutation({
     mutationFn: async (replyId: string) => {
       const supabase = createClient();
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
-      const response = await fetch(`/api/v1/replies/${replyId}`, {
+      const response = await fetch(`/api/v1/posts/${replyId}`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${session?.access_token}`,
@@ -149,28 +162,32 @@ export const useReplies = ({ postId, enabled = true }: UseRepliesOptions) => {
   });
 
   // Load nested replies
-  const loadNestedReplies = useCallback(async (parentReplyId: string) => {
-    const supabase = createClient();
-    const { data: { session } } = await supabase.auth.getSession();
+  const loadNestedReplies = useCallback(
+    async (parentReplyId: string) => {
+      const supabase = createClient();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
-    const response = await fetch(`/api/v1/replies/${parentReplyId}/replies`, {
-      headers: session?.access_token
-        ? { Authorization: `Bearer ${session.access_token}` }
-        : {},
-    });
+      const response = await getReplies(parentReplyId, {
+        headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {},
+      });
 
-    if (!response.ok) {
-      throw new Error('Failed to load nested replies');
-    }
+      if (response.status !== 200) {
+        throw new Error('Failed to load nested replies');
+      }
 
-    const data = await response.json();
-    // Ensure all nested replies have the post_id
-    const nestedRepliesWithPostId = (data.replies || []).map((reply: Reply) => ({
-      ...reply,
-      post_id: reply.post_id || postId,
-    }));
-    return nestedRepliesWithPostId as Reply[];
-  }, [postId]);
+      // Ensure all nested replies have the post_id
+      const responseData = response.data as any;
+      const replies = responseData?.replies || responseData || [];
+      const nestedRepliesWithPostId = (Array.isArray(replies) ? replies : []).map((reply: any) => ({
+        ...reply,
+        post_id: reply.root_id || reply.post_id || postId, // Map root_id to post_id for compatibility
+      }));
+      return nestedRepliesWithPostId as Reply[];
+    },
+    [postId]
+  );
 
   // Combine real and optimistic replies
   const allReplies = [...replies, ...optimisticReplies];

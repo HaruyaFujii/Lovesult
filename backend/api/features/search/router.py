@@ -1,11 +1,11 @@
-from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.core.dependencies import get_current_user_id_optional, get_db
-from .schemas import SearchFilters, PostSearchResponse, UserSearchResponse
+
+from .schemas import PostSearchResponse, SearchFilters, UserSearchResponse
 from .usecase import SearchUseCase
 
 router = APIRouter(tags=["search"])
@@ -14,12 +14,12 @@ router = APIRouter(tags=["search"])
 @router.get("/search/posts", response_model=PostSearchResponse)
 async def search_posts(
     db: AsyncSession = Depends(get_db),
-    current_user_id: Optional[UUID] = Depends(get_current_user_id_optional),
-    q: Optional[str] = Query(None, description="検索クエリ"),
-    status: Optional[str] = Query(None, description="ステータスフィルター"),
-    age_range: Optional[str] = Query(None, description="年齢範囲フィルター"),
-    cursor: Optional[str] = Query(None, description="ページネーション用カーソル"),
-    limit: int = Query(20, le=100, description="取得件数")
+    current_user_id: UUID | None = Depends(get_current_user_id_optional),
+    q: str | None = Query(None, description="検索クエリ"),
+    status: str | None = Query(None, description="ステータスフィルター"),
+    age_range: str | None = Query(None, description="年齢範囲フィルター"),
+    cursor: str | None = Query(None, description="ページネーション用カーソル"),
+    limit: int = Query(20, le=100, description="取得件数"),
 ) -> PostSearchResponse:
     """
     投稿を検索する
@@ -38,23 +38,19 @@ async def search_posts(
         filters = SearchFilters(status=status, age_range=age_range)
 
     return await usecase.search_posts(
-        query=q,
-        filters=filters,
-        current_user_id=current_user_id,
-        cursor=cursor,
-        limit=limit
+        query=q, filters=filters, current_user_id=current_user_id, cursor=cursor, limit=limit
     )
 
 
 @router.get("/search/users", response_model=UserSearchResponse)
 async def search_users(
     db: AsyncSession = Depends(get_db),
-    current_user_id: Optional[UUID] = Depends(get_current_user_id_optional),
-    q: Optional[str] = Query(None, description="検索クエリ"),
-    status: Optional[str] = Query(None, description="ステータスフィルター"),
-    age_range: Optional[str] = Query(None, description="年齢範囲フィルター"),
-    cursor: Optional[str] = Query(None, description="ページネーション用カーソル"),
-    limit: int = Query(20, le=100, description="取得件数")
+    current_user_id: UUID | None = Depends(get_current_user_id_optional),
+    q: str | None = Query(None, description="検索クエリ"),
+    status: str | None = Query(None, description="ステータスフィルター"),
+    age_range: str | None = Query(None, description="年齢範囲フィルター"),
+    cursor: str | None = Query(None, description="ページネーション用カーソル"),
+    limit: int = Query(20, le=100, description="取得件数"),
 ) -> UserSearchResponse:
     """
     ユーザーを検索する
@@ -73,9 +69,5 @@ async def search_users(
         filters = SearchFilters(status=status, age_range=age_range)
 
     return await usecase.search_users(
-        query=q,
-        filters=filters,
-        current_user_id=current_user_id,
-        cursor=cursor,
-        limit=limit
+        query=q, filters=filters, current_user_id=current_user_id, cursor=cursor, limit=limit
     )

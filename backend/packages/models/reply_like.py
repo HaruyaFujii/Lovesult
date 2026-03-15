@@ -5,13 +5,13 @@ from uuid import UUID, uuid4
 from sqlmodel import Field, Relationship, SQLModel
 
 if TYPE_CHECKING:
+    from packages.models.post import Post
     from packages.models.user import User
-    from packages.models.reply import Reply
 
 
 class ReplyLikeBase(SQLModel):
     user_id: UUID = Field(foreign_key="users.id", index=True)
-    reply_id: UUID = Field(foreign_key="replies.id", index=True)
+    reply_id: UUID = Field(foreign_key="posts.id", index=True)  # Now references posts table
 
 
 class ReplyLike(ReplyLikeBase, table=True):
@@ -22,6 +22,6 @@ class ReplyLike(ReplyLikeBase, table=True):
 
     # Relationships
     user: Optional["User"] = Relationship()
-    reply: Optional["Reply"] = Relationship(back_populates="likes")
+    post: Optional["Post"] = Relationship()  # Changed from reply to post
 
     __table_args__ = {"extend_existing": True}

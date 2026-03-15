@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import List, Optional
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -18,13 +17,13 @@ class MessageCreate(BaseModel):
 class UserBrief(BaseModel):
     id: UUID
     nickname: str
-    avatar_url: Optional[str] = None
+    avatar_url: str | None = None
 
 
 class MessageResponse(BaseModel):
     id: UUID
     sender_id: UUID
-    sender: Optional[UserBrief] = None
+    sender: UserBrief | None = None
     content: str
     created_at: datetime
     is_mine: bool
@@ -32,23 +31,23 @@ class MessageResponse(BaseModel):
 
 class ConversationResponse(BaseModel):
     id: UUID
-    partner: Optional[UserBrief] = None
-    last_message: Optional[MessageResponse] = None
+    partner: UserBrief | None = None
+    last_message: MessageResponse | None = None
     unread_count: int
     updated_at: datetime
 
 
 class ConversationListResponse(BaseModel):
-    conversations: List[ConversationResponse]
-    cursor: Optional[str] = None
+    conversations: list[ConversationResponse]
+    cursor: str | None = None
 
 
 class MessageListResponse(BaseModel):
-    messages: List[MessageResponse]
-    cursor: Optional[str] = None
+    messages: list[MessageResponse]
+    cursor: str | None = None
 
 
 class ConversationDetailResponse(BaseModel):
     id: UUID
-    partner: Optional[UserBrief] = None
+    partner: UserBrief | None = None
     created_at: datetime

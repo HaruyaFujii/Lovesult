@@ -33,11 +33,7 @@ export default function SubscriptionPage() {
   return (
     <div className="container max-w-4xl mx-auto px-4 py-8">
       <div className="mb-6">
-        <Button
-          variant="ghost"
-          onClick={() => router.push('/settings')}
-          className="mb-4"
-        >
+        <Button variant="ghost" onClick={() => router.push('/settings')} className="mb-4">
           <ArrowLeft className="h-4 w-4 mr-2" />
           設定に戻る
         </Button>
@@ -45,9 +41,7 @@ export default function SubscriptionPage() {
           <Crown className="h-6 w-6 text-yellow-500" />
           サブスクリプションプラン
         </h1>
-        <p className="text-gray-600 mt-2">
-          あなたに最適なプランを選択してください
-        </p>
+        <p className="text-gray-600 mt-2">あなたに最適なプランを選択してください</p>
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
@@ -70,9 +64,7 @@ export default function SubscriptionPage() {
                   ) : (
                     <X className="h-5 w-5 text-gray-300" />
                   )}
-                  <span className={feature.free ? '' : 'text-gray-400'}>
-                    {feature.name}
-                  </span>
+                  <span className={feature.free ? '' : 'text-gray-400'}>{feature.name}</span>
                 </div>
               ))}
             </div>
@@ -132,8 +124,7 @@ export default function SubscriptionPage() {
               準備中
             </DialogTitle>
             <DialogDescription>
-              プレミアムプランは現在準備中です。
-              サービス開始時にお知らせいたします。
+              プレミアムプランは現在準備中です。 サービス開始時にお知らせいたします。
             </DialogDescription>
           </DialogHeader>
           <div className="mt-4">

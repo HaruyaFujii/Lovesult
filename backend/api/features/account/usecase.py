@@ -2,8 +2,9 @@ from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from packages.services.account_service import AccountService
 from api.config import get_settings
+from packages.services.account_service import AccountService
+
 from .schemas import AccountDeletionResponse
 
 
@@ -12,11 +13,7 @@ class AccountUseCase:
         self.account_service = AccountService(session)
         self.settings = get_settings()
 
-    async def delete_account(
-        self,
-        user_id: UUID,
-        confirmation: str
-    ) -> AccountDeletionResponse:
+    async def delete_account(self, user_id: UUID, confirmation: str) -> AccountDeletionResponse:
         """
         アカウントを削除する
 
@@ -31,7 +28,7 @@ class AccountUseCase:
         if confirmation != "DELETE MY ACCOUNT":
             return AccountDeletionResponse(
                 success=False,
-                message="確認文字列が正しくありません。'DELETE MY ACCOUNT'と入力してください。"
+                message="確認文字列が正しくありません。'DELETE MY ACCOUNT'と入力してください。",
             )
 
         try:
@@ -39,25 +36,21 @@ class AccountUseCase:
             success = await self.account_service.delete_user_account(
                 user_id=user_id,
                 supabase_url=self.settings.supabase_url,
-                supabase_service_key=self.settings.supabase_service_role_key
+                supabase_service_key=self.settings.supabase_service_role_key,
             )
 
             if success:
                 return AccountDeletionResponse(
-                    success=True,
-                    message="アカウントが正常に削除されました。"
+                    success=True, message="アカウントが正常に削除されました。"
                 )
             else:
                 return AccountDeletionResponse(
-                    success=False,
-                    message="アカウントの削除に失敗しました。"
+                    success=False, message="アカウントの削除に失敗しました。"
                 )
 
-        except Exception as e:
-            print(f"Account deletion error: {e}")
+        except Exception:
             return AccountDeletionResponse(
-                success=False,
-                message="アカウントの削除中にエラーが発生しました。"
+                success=False, message="アカウントの削除中にエラーが発生しました。"
             )
 
     async def get_account_summary(self, user_id: UUID) -> dict:

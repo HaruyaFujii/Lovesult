@@ -7,13 +7,13 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env")
 
     # Supabase
-    supabase_url: str
-    supabase_anon_key: str
-    supabase_service_role_key: str
-    supabase_jwt_secret: str
+    supabase_url: str = "http://localhost:54321"
+    supabase_anon_key: str = "test_anon_key"
+    supabase_service_role_key: str = "test_service_role_key"
+    supabase_jwt_secret: str = "test_jwt_secret"
 
     # Database
-    database_url: str
+    database_url: str = "postgresql://postgres:postgres@localhost:5432/lovesult"
 
     # App
     env: str = "development"

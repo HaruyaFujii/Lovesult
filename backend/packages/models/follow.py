@@ -22,19 +22,11 @@ class Follow(FollowBase, table=True):
     # Relationships
     follower: Optional["User"] = Relationship(
         back_populates="following_relations",
-        sa_relationship_kwargs={
-            "foreign_keys": "[Follow.follower_id]",
-            "post_update": True
-        }
+        sa_relationship_kwargs={"foreign_keys": "[Follow.follower_id]", "post_update": True},
     )
     following: Optional["User"] = Relationship(
         back_populates="follower_relations",
-        sa_relationship_kwargs={
-            "foreign_keys": "[Follow.following_id]",
-            "post_update": True
-        }
+        sa_relationship_kwargs={"foreign_keys": "[Follow.following_id]", "post_update": True},
     )
 
-    __table_args__ = (
-        {"extend_existing": True}
-    )
+    __table_args__ = {"extend_existing": True}

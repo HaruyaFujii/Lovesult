@@ -36,7 +36,7 @@ export default function PostCard({
       id={post.id}
       content={post.content}
       author={{
-        id: post.user?.id || post.user_id,
+        id: post.user?.id || post.user_id || '',
         nickname: post.user?.nickname,
         avatar_url: post.user?.avatar_url,
         status: post.author_status,

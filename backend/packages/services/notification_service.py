@@ -1,6 +1,5 @@
-from typing import List, Optional, Tuple
-from uuid import UUID
 from datetime import datetime
+from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -13,37 +12,32 @@ class NotificationService:
         self.repository = NotificationRepository(session)
         self.session = session
 
-    async def create_follow_notification(self, followed_user_id: UUID, follower_id: UUID) -> Notification:
+    async def create_follow_notification(
+        self, followed_user_id: UUID, follower_id: UUID
+    ) -> Notification:
         """フォロー通知を作成"""
         # 自分自身への通知は作成しない
         if followed_user_id == follower_id:
             return None
 
         return await self.repository.create_notification(
-            user_id=followed_user_id,
-            actor_id=follower_id,
-            notification_type="follow"
+            user_id=followed_user_id, actor_id=follower_id, notification_type="follow"
         )
 
-    async def create_like_notification(self, post_id: UUID, post_author_id: UUID, liker_id: UUID) -> Notification:
+    async def create_like_notification(
+        self, post_id: UUID, post_author_id: UUID, liker_id: UUID
+    ) -> Notification:
         """いいね通知を作成"""
         # 自分自身への通知は作成しない
         if post_author_id == liker_id:
             return None
 
         return await self.repository.create_notification(
-            user_id=post_author_id,
-            actor_id=liker_id,
-            notification_type="like",
-            post_id=post_id
+            user_id=post_author_id, actor_id=liker_id, notification_type="like", post_id=post_id
         )
 
     async def create_reply_notification(
-        self,
-        post_id: UUID,
-        post_author_id: UUID,
-        reply_id: UUID,
-        replier_id: UUID
+        self, post_id: UUID, post_author_id: UUID, reply_id: UUID, replier_id: UUID
     ) -> Notification:
         """リプライ通知を作成"""
         # 自分自身への通知は作成しない
@@ -55,17 +49,14 @@ class NotificationService:
             actor_id=replier_id,
             notification_type="reply",
             post_id=post_id,
-            reply_id=reply_id
+            reply_id=reply_id,
         )
         await self.session.commit()
         return notification
 
     async def get_notifications(
-        self,
-        user_id: UUID,
-        cursor: Optional[str] = None,
-        limit: int = 20
-    ) -> Tuple[List[Notification], Optional[str]]:
+        self, user_id: UUID, cursor: str | None = None, limit: int = 20
+    ) -> tuple[list[Notification], str | None]:
         cursor_datetime = None
         if cursor:
             cursor_datetime = datetime.fromisoformat(cursor)

@@ -7,6 +7,7 @@ import { useCurrentUser } from '@/hooks/use-user';
 import { useCreatePost } from '@/hooks/use-posts';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getUserStatusLabel } from '@/lib/utils/enum-labels';
+import { User } from '@/types';
 
 interface Props {
   isOpen: boolean;
@@ -18,7 +19,23 @@ const MAX_LENGTH = 500;
 export function CreatePostModal({ isOpen, onClose }: Props) {
   const { user } = useAuth();
   const { data: currentUser, isLoading: userLoading } = useCurrentUser();
-  const createPost = useCreatePost(currentUser);
+
+  // UserResponseをUserに変換
+  const userForPost: User | undefined = currentUser ? {
+    id: currentUser.id,
+    email: currentUser.email || '',
+    nickname: currentUser.nickname,
+    name: currentUser.nickname,  // nameフィールドがない場合はnicknameを使用
+    avatar_url: currentUser.avatar_url || undefined,
+    status: currentUser.status,
+    gender: currentUser.gender,
+    age_range: currentUser.age_range,
+    bio: currentUser.bio || undefined,
+    created_at: currentUser.created_at || new Date().toISOString(),
+    updated_at: currentUser.updated_at || undefined
+  } : undefined;
+
+  const createPost = useCreatePost(userForPost);
   const [content, setContent] = useState('');
   const [error, setError] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -116,9 +133,7 @@ export function CreatePostModal({ isOpen, onClose }: Props) {
             </Avatar>
             <div>
               <p className="font-bold">{currentUser?.nickname || 'ユーザー'}</p>
-              <p className="text-sm text-gray-500">
-                {getUserStatusLabel(currentUser?.status)}
-              </p>
+              <p className="text-sm text-gray-500">{getUserStatusLabel(currentUser?.status)}</p>
             </div>
           </div>
 
@@ -153,14 +168,9 @@ export function CreatePostModal({ isOpen, onClose }: Props) {
           <p className="text-sm text-gray-500">
             {userLoading
               ? '読み込み中...'
-              : `ステータス「${getUserStatusLabel(currentUser?.status)}」で投稿されます`
-            }
+              : `ステータス「${getUserStatusLabel(currentUser?.status)}」で投稿されます`}
           </p>
-          <p
-            className={`text-sm font-medium ${
-              isOverLimit ? 'text-red-500' : 'text-gray-400'
-            }`}
-          >
+          <p className={`text-sm font-medium ${isOverLimit ? 'text-red-500' : 'text-gray-400'}`}>
             {content.length} / {MAX_LENGTH}
           </p>
         </div>

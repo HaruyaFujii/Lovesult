@@ -1,21 +1,26 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Bell, Heart, MessageCircle, UserPlus } from "lucide-react";
-import { useGetNotifications, useGetUnreadNotificationCount, useMarkNotificationAsRead, useMarkAllNotificationsAsRead } from "@/hooks/use-notifications";
-import { formatDistanceToNow } from "date-fns";
-import { ja } from "date-fns/locale";
-import { useRouter } from "next/navigation";
-import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { useQueryClient } from "@tanstack/react-query";
+} from '@/components/ui/dropdown-menu';
+import { Bell, Heart, MessageCircle, UserPlus } from 'lucide-react';
+import {
+  useGetNotifications,
+  useGetUnreadNotificationCount,
+  useMarkNotificationAsRead,
+  useMarkAllNotificationsAsRead,
+} from '@/hooks/use-notifications';
+import { formatDistanceToNow } from 'date-fns';
+import { ja } from 'date-fns/locale';
+import { useRouter } from 'next/navigation';
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { useQueryClient } from '@tanstack/react-query';
 
 export function NotificationBell() {
   const router = useRouter();
@@ -59,11 +64,11 @@ export function NotificationBell() {
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
-      case "like":
+      case 'like':
         return <Heart className="h-4 w-4 text-red-500" />;
-      case "reply":
+      case 'reply':
         return <MessageCircle className="h-4 w-4 text-blue-500" />;
-      case "follow":
+      case 'follow':
         return <UserPlus className="h-4 w-4 text-green-500" />;
       default:
         return <Bell className="h-4 w-4" />;
@@ -72,14 +77,14 @@ export function NotificationBell() {
 
   const getNotificationMessage = (notification: any) => {
     switch (notification.type) {
-      case "like":
-        return "があなたの投稿にいいねしました";
-      case "reply":
-        return "があなたの投稿に返信しました";
-      case "follow":
-        return "があなたをフォローしました";
+      case 'like':
+        return 'があなたの投稿にいいねしました';
+      case 'reply':
+        return 'があなたの投稿に返信しました';
+      case 'follow':
+        return 'があなたをフォローしました';
       default:
-        return "";
+        return '';
     }
   };
 
@@ -93,7 +98,7 @@ export function NotificationBell() {
               variant="destructive"
               className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center"
             >
-              {unreadData.data.unread_count > 99 ? "99+" : unreadData.data.unread_count}
+              {unreadData.data.unread_count > 99 ? '99+' : unreadData.data.unread_count}
             </Badge>
           )}
         </Button>
@@ -113,10 +118,10 @@ export function NotificationBell() {
           )}
         </div>
         <ScrollArea className="h-96">
-          {!notificationsData?.data || !('notifications' in notificationsData.data) || notificationsData.data.notifications.length === 0 ? (
-            <div className="p-4 text-center text-muted-foreground">
-              通知はありません
-            </div>
+          {!notificationsData?.data ||
+          !('notifications' in notificationsData.data) ||
+          notificationsData.data.notifications.length === 0 ? (
+            <div className="p-4 text-center text-muted-foreground">通知はありません</div>
           ) : (
             notificationsData.data.notifications.map((notification: any) => (
               <DropdownMenuItem
@@ -125,13 +130,11 @@ export function NotificationBell() {
                 onClick={() => handleNotificationClick(notification)}
               >
                 <div className="flex gap-3 w-full">
-                  <div className="flex-shrink-0">
-                    {getNotificationIcon(notification.type)}
-                  </div>
+                  <div className="flex-shrink-0">{getNotificationIcon(notification.type)}</div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1">
                       <span className="font-medium truncate">
-                        {notification.actor?.name || "ユーザー"}
+                        {notification.actor?.name || 'ユーザー'}
                       </span>
                       <span className="text-sm text-muted-foreground">
                         {getNotificationMessage(notification)}

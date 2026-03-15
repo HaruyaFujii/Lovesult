@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Dict, List, Optional
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -7,21 +6,21 @@ from pydantic import BaseModel, Field
 
 class QuestionOption(BaseModel):
     text: str
-    scores: Dict[str, int]
+    scores: dict[str, int]
 
 
 class Question(BaseModel):
     id: int
     text: str
-    options: List[QuestionOption]
+    options: list[QuestionOption]
 
 
 class QuestionsResponse(BaseModel):
-    questions: List[Question]
+    questions: list[Question]
 
 
 class AnswerSubmit(BaseModel):
-    answers: List[int] = Field(..., min_length=10, max_length=10)  # 各質問の選択肢インデックス
+    answers: list[int] = Field(..., min_length=10, max_length=10)  # 各質問の選択肢インデックス
 
 
 class PersonalityType(BaseModel):
@@ -30,24 +29,24 @@ class PersonalityType(BaseModel):
     description: str
     emoji: str
     color: str
-    compatible_with: List[str]
+    compatible_with: list[str]
 
 
 class PersonalityResultResponse(BaseModel):
     primary_type: PersonalityType
-    secondary_type: Optional[PersonalityType] = None
-    scores: Dict[str, int]
+    secondary_type: PersonalityType | None = None
+    scores: dict[str, int]
     created_at: datetime
 
 
 class RecommendedUser(BaseModel):
     id: UUID
     nickname: str
-    avatar_url: Optional[str] = None
+    avatar_url: str | None = None
     personality_type: str
     personality_emoji: str
     compatibility_score: float
 
 
 class RecommendedUsersResponse(BaseModel):
-    users: List[RecommendedUser]
+    users: list[RecommendedUser]

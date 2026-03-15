@@ -70,7 +70,10 @@ QUESTIONS = [
         "options": [
             {"text": "二人でまったりおうちデート", "scores": {"caring": 2, "rational": 1}},
             {"text": "新しい場所を探検", "scores": {"adventurous": 2, "passionate": 1}},
-            {"text": "それぞれの時間も大切にしつつ会う", "scores": {"independent": 2, "romantic": 1}},
+            {
+                "text": "それぞれの時間も大切にしつつ会う",
+                "scores": {"independent": 2, "romantic": 1},
+            },
         ],
     },
     {

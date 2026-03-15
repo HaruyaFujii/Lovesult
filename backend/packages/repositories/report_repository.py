@@ -1,9 +1,10 @@
-from uuid import UUID
-from typing import Optional, List
+from collections.abc import Sequence
 from datetime import datetime
+from uuid import UUID
 
-from sqlmodel import select, and_, or_
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import and_, desc, func
+from sqlmodel import or_, select
 
 from packages.models.report import Report, ReportStatus, ReportType
 
@@ -19,9 +20,9 @@ class ReportRepository:
         reporter_id: UUID,
         report_type: ReportType,
         reason: str,
-        post_id: Optional[UUID] = None,
-        reply_id: Optional[UUID] = None,
-        user_id: Optional[UUID] = None,
+        post_id: UUID | None = None,
+        reply_id: UUID | None = None,
+        user_id: UUID | None = None,
     ) -> Report:
         """報告を作成する"""
         report = Report(
@@ -37,19 +38,17 @@ class ReportRepository:
         await self.session.refresh(report)
         return report
 
-    async def get_report_by_id(self, report_id: UUID) -> Optional[Report]:
+    async def get_report_by_id(self, report_id: UUID) -> Report | None:
         """IDで報告を取得する"""
-        result = await self.session.execute(
-            select(Report).where(Report.id == report_id)
-        )
+        result = await self.session.execute(select(Report).where(Report.id == report_id))
         return result.scalar_one_or_none()
 
     async def check_duplicate_report(
         self,
         reporter_id: UUID,
-        post_id: Optional[UUID] = None,
-        reply_id: Optional[UUID] = None,
-        user_id: Optional[UUID] = None,
+        post_id: UUID | None = None,
+        reply_id: UUID | None = None,
+        user_id: UUID | None = None,
     ) -> bool:
         """重複報告をチェックする"""
         conditions = [Report.reporter_id == reporter_id]
@@ -63,57 +62,43 @@ class ReportRepository:
 
         # PENDINGまたはREVIEWEDの状態の報告のみチェック
         conditions.append(
-            or_(
-                Report.status == ReportStatus.PENDING,
-                Report.status == ReportStatus.REVIEWED
-            )
+            or_(Report.status == ReportStatus.PENDING, Report.status == ReportStatus.REVIEWED)
         )
 
-        result = await self.session.execute(
-            select(Report).where(and_(*conditions))
-        )
+        result = await self.session.execute(select(Report).where(*conditions))
         return result.scalar_one_or_none() is not None
 
     async def get_reports_by_status(
-        self,
-        status: ReportStatus,
-        limit: int = 20,
-        offset: int = 0
-    ) -> List[Report]:
+        self, status: ReportStatus, limit: int = 20, offset: int = 0
+    ) -> Sequence[Report]:
         """ステータスで報告を取得する"""
         result = await self.session.execute(
             select(Report)
             .where(Report.status == status)
-            .order_by(Report.created_at.desc())
+            .order_by(desc(Report.created_at))
             .limit(limit)
             .offset(offset)
         )
         return result.scalars().all()
 
-    async def get_reports_for_post(self, post_id: UUID) -> List[Report]:
+    async def get_reports_for_post(self, post_id: UUID) -> Sequence[Report]:
         """投稿に対する報告を取得する"""
         result = await self.session.execute(
-            select(Report)
-            .where(Report.post_id == post_id)
-            .order_by(Report.created_at.desc())
+            select(Report).where(Report.post_id == post_id)
         )
         return result.scalars().all()
 
-    async def get_reports_for_reply(self, reply_id: UUID) -> List[Report]:
+    async def get_reports_for_reply(self, reply_id: UUID) -> Sequence[Report]:
         """返信に対する報告を取得する"""
         result = await self.session.execute(
-            select(Report)
-            .where(Report.reply_id == reply_id)
-            .order_by(Report.created_at.desc())
+            select(Report).where(Report.reply_id == reply_id)
         )
         return result.scalars().all()
 
-    async def get_reports_for_user(self, user_id: UUID) -> List[Report]:
+    async def get_reports_for_user(self, user_id: UUID) -> Sequence[Report]:
         """ユーザーに対する報告を取得する"""
         result = await self.session.execute(
-            select(Report)
-            .where(Report.user_id == user_id)
-            .order_by(Report.created_at.desc())
+            select(Report).where(Report.user_id == user_id)
         )
         return result.scalars().all()
 
@@ -121,9 +106,9 @@ class ReportRepository:
         self,
         report_id: UUID,
         status: ReportStatus,
-        reviewer_id: Optional[UUID] = None,
-        reviewer_comment: Optional[str] = None,
-    ) -> Optional[Report]:
+        reviewer_id: UUID | None = None,
+        reviewer_comment: str | None = None,
+    ) -> Report | None:
         """報告のステータスを更新する"""
         report = await self.get_report_by_id(report_id)
         if not report:
@@ -146,6 +131,6 @@ class ReportRepository:
     async def count_reports_by_status(self, status: ReportStatus) -> int:
         """ステータスごとの報告数をカウントする"""
         result = await self.session.execute(
-            select(Report).where(Report.status == status)
+            select(func.count(Report.id)).where(Report.status == status)
         )
-        return len(result.scalars().all())
+        return result.scalar()

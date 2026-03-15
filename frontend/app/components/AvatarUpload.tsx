@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useState, useRef, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useState, useRef, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Dialog,
   DialogContent,
@@ -11,10 +11,10 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { Camera, Upload, X } from "lucide-react";
+} from '@/components/ui/dialog';
+import { Camera, Upload, X } from 'lucide-react';
 import { customInstance } from '@/lib/api/customInstance';
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from '@tanstack/react-query';
 
 interface AvatarUploadProps {
   currentAvatarUrl?: string;
@@ -53,12 +53,12 @@ export function AvatarUpload({
     }
 
     // ファイルタイプチェック
-    if (!file.type.startsWith("image/")) {
+    if (!file.type.startsWith('image/')) {
       return;
     }
 
     // SVGファイルをブロック
-    if (file.type === "image/svg+xml" || file.name.toLowerCase().endsWith('.svg')) {
+    if (file.type === 'image/svg+xml' || file.name.toLowerCase().endsWith('.svg')) {
       return;
     }
 
@@ -89,7 +89,7 @@ export function AvatarUpload({
         }
       );
 
-      const newAvatarUrl = response.data?.avatar_url || "";
+      const newAvatarUrl = response.data?.avatar_url || '';
       setLocalAvatarUrl(newAvatarUrl);
 
       setOpen(false);
@@ -102,7 +102,6 @@ export function AvatarUpload({
       queryClient.invalidateQueries({ queryKey: ['/api/v1/users/me'] });
       queryClient.invalidateQueries({ queryKey: ['/api/v1/posts'] });
       queryClient.invalidateQueries({ queryKey: ['/api/v1/users'] });
-
     } catch (error: any) {
       console.error('Avatar upload error:', error);
 
@@ -118,7 +117,7 @@ export function AvatarUpload({
     setPreview(null);
     setSelectedFile(null);
     if (fileInputRef.current) {
-      fileInputRef.current.value = "";
+      fileInputRef.current.value = '';
     }
   };
 
@@ -129,12 +128,8 @@ export function AvatarUpload({
       <DialogTrigger asChild>
         <div className="relative group cursor-pointer">
           <Avatar className="h-20 w-20">
-            <AvatarImage
-              src={finalImageSrc}
-            />
-            <AvatarFallback>
-              {userName?.charAt(0) || "U"}
-            </AvatarFallback>
+            <AvatarImage src={finalImageSrc} />
+            <AvatarFallback>{userName?.charAt(0) || 'U'}</AvatarFallback>
           </Avatar>
           <div className="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
             <Camera className="h-6 w-6 text-white" />
@@ -153,14 +148,8 @@ export function AvatarUpload({
           {/* プレビューまたは現在の画像 */}
           <div className="relative">
             <Avatar className="h-32 w-32">
-              <AvatarImage
-                src={
-                  preview || localAvatarUrl || undefined
-                }
-              />
-              <AvatarFallback className="text-2xl">
-                {userName?.charAt(0) || "U"}
-              </AvatarFallback>
+              <AvatarImage src={preview || localAvatarUrl || undefined} />
+              <AvatarFallback className="text-2xl">{userName?.charAt(0) || 'U'}</AvatarFallback>
             </Avatar>
             {preview && (
               <Button
@@ -203,19 +192,11 @@ export function AvatarUpload({
         </div>
 
         <DialogFooter>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => setOpen(false)}
-          >
+          <Button type="button" variant="outline" onClick={() => setOpen(false)}>
             キャンセル
           </Button>
-          <Button
-            type="submit"
-            onClick={handleUpload}
-            disabled={!selectedFile || isUploading}
-          >
-            {isUploading ? "アップロード中..." : "保存"}
+          <Button type="submit" onClick={handleUpload} disabled={!selectedFile || isUploading}>
+            {isUploading ? 'アップロード中...' : '保存'}
           </Button>
         </DialogFooter>
       </DialogContent>

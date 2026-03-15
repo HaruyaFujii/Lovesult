@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import List, Optional, Tuple
 from uuid import UUID
 
 from sqlalchemy import and_, desc, func, select
@@ -8,7 +7,6 @@ from sqlalchemy.orm import selectinload
 
 from packages.models.conversation_participant import ConversationParticipant
 from packages.models.direct_message import DirectMessage
-from packages.models.user import User
 
 
 class MessageRepository:
@@ -24,9 +22,9 @@ class MessageRepository:
     async def get_messages(
         self,
         conversation_id: UUID,
-        cursor: Optional[datetime] = None,
+        cursor: datetime | None = None,
         limit: int = 50,
-    ) -> Tuple[List[DirectMessage], Optional[str]]:
+    ) -> tuple[list[DirectMessage], str | None]:
         """メッセージ一覧を取得"""
         query = (
             select(DirectMessage)
@@ -50,9 +48,7 @@ class MessageRepository:
 
         return messages, next_cursor
 
-    async def get_last_message(
-        self, conversation_id: UUID
-    ) -> Optional[DirectMessage]:
+    async def get_last_message(self, conversation_id: UUID) -> DirectMessage | None:
         """最新メッセージを取得"""
         query = (
             select(DirectMessage)
@@ -61,7 +57,6 @@ class MessageRepository:
             .order_by(desc(DirectMessage.created_at))
             .limit(1)
         )
-
         result = await self.session.execute(query)
         return result.scalar_one_or_none()
 
@@ -69,7 +64,7 @@ class MessageRepository:
         self,
         conversation_id: UUID,
         user_id: UUID,
-        last_read_at: Optional[datetime],
+        last_read_at: datetime | None,
     ) -> int:
         """未読数を取得"""
         query = select(func.count(DirectMessage.id)).where(
@@ -85,9 +80,7 @@ class MessageRepository:
         result = await self.session.execute(query)
         return result.scalar() or 0
 
-    async def is_participant(
-        self, conversation_id: UUID, user_id: UUID
-    ) -> bool:
+    async def is_participant(self, conversation_id: UUID, user_id: UUID) -> bool:
         """会話の参加者かどうか"""
         query = select(ConversationParticipant).where(
             and_(
@@ -110,9 +103,7 @@ class MessageRepository:
         await self.session.flush()
         return participant
 
-    async def get_partner_id(
-        self, conversation_id: UUID, user_id: UUID
-    ) -> Optional[UUID]:
+    async def get_partner_id(self, conversation_id: UUID, user_id: UUID) -> UUID | None:
         """会話相手のIDを取得"""
         query = select(ConversationParticipant.user_id).where(
             and_(
@@ -124,9 +115,7 @@ class MessageRepository:
         partner_id = result.scalar_one_or_none()
         return partner_id
 
-    async def mark_as_read(
-        self, conversation_id: UUID, user_id: UUID
-    ) -> None:
+    async def mark_as_read(self, conversation_id: UUID, user_id: UUID) -> None:
         """既読にする"""
         query = select(ConversationParticipant).where(
             and_(

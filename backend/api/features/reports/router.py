@@ -1,10 +1,11 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.core.dependencies import get_current_user_id, get_db
-from .schemas import ReportCreate, ReportResponse, ReportListResponse
+
+from .schemas import ReportCreate, ReportListResponse, ReportResponse
 from .usecase import ReportUseCase
 
 router = APIRouter(prefix="/reports", tags=["reports"])
@@ -15,7 +16,7 @@ async def create_report(
     report_data: ReportCreate,
     current_user_id: UUID = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
-):
+) -> ReportResponse:
     """コンテンツを報告する"""
     usecase = ReportUseCase(db)
     try:
@@ -31,7 +32,7 @@ async def create_report(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e),
-        )
+        ) from e
 
 
 @router.get("/{report_id}", response_model=ReportResponse, operation_id="getReport")
@@ -39,7 +40,7 @@ async def get_report(
     report_id: UUID,
     current_user_id: UUID = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
-):
+) -> ReportResponse:
     """報告の詳細を取得する"""
     usecase = ReportUseCase(db)
     report = await usecase.get_report(report_id)
@@ -65,7 +66,7 @@ async def get_pending_reports(
     limit: int = Query(20, ge=1, le=100),
     offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_db),
-):
+) -> ReportListResponse:
     """保留中の報告一覧を取得する（管理者用）"""
     # TODO: 管理者権限チェックを追加
     usecase = ReportUseCase(db)

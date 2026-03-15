@@ -51,7 +51,10 @@ export default function PostForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+    <form
+      onSubmit={handleSubmit}
+      className="bg-white rounded-lg shadow-sm border border-gray-200 p-4"
+    >
       {error && (
         <div className="mb-3 p-3 bg-red-50 border border-red-200 text-red-600 rounded-md text-sm">
           {error}
@@ -68,9 +71,7 @@ export default function PostForm({
       />
 
       <div className="mt-3 flex items-center justify-between">
-        <span className="text-sm text-gray-500">
-          {content.length}/500文字
-        </span>
+        <span className="text-sm text-gray-500">{content.length}/500文字</span>
         <button
           type="submit"
           disabled={loading || !content.trim()}

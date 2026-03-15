@@ -26,9 +26,9 @@ interface Notification {
   is_read: boolean;
 }
 
-export default function NotificationsPage() {
-  const { user } = useAuth();
-  const [notifications, setNotifications] = useState<Notification[]>([
+const getInitialNotifications = (): Notification[] => {
+  const now = Date.now();
+  return [
     // ダミーデータ
     {
       id: '1',
@@ -42,7 +42,7 @@ export default function NotificationsPage() {
         id: 'post1',
         content: '今日は良い天気ですね！',
       },
-      created_at: new Date(Date.now() - 60000 * 30).toISOString(), // 30分前
+      created_at: new Date(now - 60000 * 30).toISOString(), // 30分前
       is_read: false,
     },
     {
@@ -58,7 +58,7 @@ export default function NotificationsPage() {
         id: 'post2',
         content: '恋愛について思うこと',
       },
-      created_at: new Date(Date.now() - 60000 * 60 * 2).toISOString(), // 2時間前
+      created_at: new Date(now - 60000 * 60 * 2).toISOString(), // 2時間前
       is_read: false,
     },
     {
@@ -69,14 +69,18 @@ export default function NotificationsPage() {
         nickname: '山田さん',
         avatar_url: undefined,
       },
-      created_at: new Date(Date.now() - 60000 * 60 * 24).toISOString(), // 1日前
+      created_at: new Date(now - 60000 * 60 * 24).toISOString(), // 1日前
       is_read: true,
     },
-  ]);
+  ];
+};
+
+export default function NotificationsPage() {
+  const { user } = useAuth();
+  const [notifications, setNotifications] = useState<Notification[]>(getInitialNotifications);
 
   const handleRefresh = async () => {
     // 実際の実装では通知データを再取得
-    console.log('通知データを更新中...');
   };
 
   const getNotificationIcon = (type: Notification['type']) => {
@@ -126,9 +130,7 @@ export default function NotificationsPage() {
               <div className="text-center py-12">
                 <Bell className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                 <p className="text-gray-500 text-lg font-medium">通知はありません</p>
-                <p className="text-gray-400 text-sm mt-2">
-                  新しい通知があるとここに表示されます
-                </p>
+                <p className="text-gray-400 text-sm mt-2">新しい通知があるとここに表示されます</p>
               </div>
             ) : (
               <div className="divide-y border-gray-200">
@@ -176,7 +178,10 @@ export default function NotificationsPage() {
                             {formatDistanceToNowJST(notification.created_at)}
                           </span>
                           {!notification.is_read && (
-                            <Badge variant="secondary" className="text-xs bg-pink-100 text-pink-600">
+                            <Badge
+                              variant="secondary"
+                              className="text-xs bg-pink-100 text-pink-600"
+                            >
                               新着
                             </Badge>
                           )}

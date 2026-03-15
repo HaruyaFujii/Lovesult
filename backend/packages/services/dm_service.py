@@ -1,11 +1,9 @@
 from datetime import datetime
-from typing import List, Optional, Tuple
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from packages.models.conversation import Conversation
-from packages.models.conversation_participant import ConversationParticipant
 from packages.models.direct_message import DirectMessage
 from packages.repositories.conversation_repository import ConversationRepository
 from packages.repositories.message_repository import MessageRepository
@@ -22,9 +20,9 @@ class DMService:
     async def get_user_conversations(
         self,
         user_id: UUID,
-        cursor: Optional[str] = None,
+        cursor: str | None = None,
         limit: int = 20,
-    ) -> List[dict]:
+    ) -> list[dict]:
         """ユーザーの会話一覧を取得（最新メッセージ・未読数付き）"""
         cursor_datetime = None
         if cursor:
@@ -61,7 +59,9 @@ class DMService:
                         "id": sender.id,
                         "nickname": sender.nickname,
                         "avatar_url": sender.avatar_url,
-                    } if sender else None,
+                    }
+                    if sender
+                    else None,
                     "content": last_message.content,
                     "created_at": last_message.created_at,
                     "is_mine": last_message.sender_id == user_id,
@@ -71,17 +71,19 @@ class DMService:
             # TODO: ConversationParticipantの取得処理を実装
             unread_count = 0  # 一旦0で返す
 
-            response.append({
-                "id": conv.id,
-                "partner": {
-                    "id": partner.id,
-                    "nickname": partner.nickname,
-                    "avatar_url": partner.avatar_url,
-                },
-                "last_message": last_message_dict,
-                "unread_count": unread_count,
-                "updated_at": conv.updated_at,
-            })
+            response.append(
+                {
+                    "id": conv.id,
+                    "partner": {
+                        "id": partner.id,
+                        "nickname": partner.nickname,
+                        "avatar_url": partner.avatar_url,
+                    },
+                    "last_message": last_message_dict,
+                    "unread_count": unread_count,
+                    "updated_at": conv.updated_at,
+                }
+            )
 
         return response
 
@@ -101,7 +103,9 @@ class DMService:
                     "id": partner.id,
                     "nickname": partner.nickname,
                     "avatar_url": partner.avatar_url,
-                } if partner else None,
+                }
+                if partner
+                else None,
                 "created_at": existing.created_at,
             }
 
@@ -122,7 +126,9 @@ class DMService:
                 "id": partner.id,
                 "nickname": partner.nickname,
                 "avatar_url": partner.avatar_url,
-            } if partner else None,
+            }
+            if partner
+            else None,
             "created_at": conversation.created_at,
         }
 
@@ -130,7 +136,7 @@ class DMService:
         self,
         user_id: UUID,
         conversation_id: UUID,
-    ) -> Optional[dict]:
+    ) -> dict | None:
         """会話詳細を取得"""
         # 会話の参加者かチェック
         is_participant = await self.message_repo.is_participant(conversation_id, user_id)
@@ -152,7 +158,9 @@ class DMService:
                 "id": partner.id,
                 "nickname": partner.nickname,
                 "avatar_url": partner.avatar_url,
-            } if partner else None,
+            }
+            if partner
+            else None,
             "created_at": conversation.created_at,
         }
 
@@ -168,9 +176,9 @@ class DMService:
         self,
         conversation_id: UUID,
         user_id: UUID,
-        cursor: Optional[str] = None,
+        cursor: str | None = None,
         limit: int = 50,
-    ) -> List[dict]:
+    ) -> list[dict]:
         """メッセージ一覧を取得"""
         cursor_datetime = None
         if cursor:
@@ -185,18 +193,22 @@ class DMService:
         response = []
         for msg in messages:
             sender = await self.user_repo.get_by_id(msg.sender_id)
-            response.append({
-                "id": msg.id,
-                "sender_id": msg.sender_id,
-                "sender": {
-                    "id": sender.id,
-                    "nickname": sender.nickname,
-                    "avatar_url": sender.avatar_url,
-                } if sender else None,
-                "content": msg.content,
-                "created_at": msg.created_at,
-                "is_mine": msg.sender_id == user_id,
-            })
+            response.append(
+                {
+                    "id": msg.id,
+                    "sender_id": msg.sender_id,
+                    "sender": {
+                        "id": sender.id,
+                        "nickname": sender.nickname,
+                        "avatar_url": sender.avatar_url,
+                    }
+                    if sender
+                    else None,
+                    "content": msg.content,
+                    "created_at": msg.created_at,
+                    "is_mine": msg.sender_id == user_id,
+                }
+            )
 
         return response
 
@@ -229,7 +241,9 @@ class DMService:
                 "id": sender.id,
                 "nickname": sender.nickname,
                 "avatar_url": sender.avatar_url,
-            } if sender else None,
+            }
+            if sender
+            else None,
             "content": message.content,
             "created_at": message.created_at,
             "is_mine": True,
@@ -239,7 +253,7 @@ class DMService:
         self,
         conversation_id: UUID,
         user_id: UUID,
-    ) -> Optional[UUID]:
+    ) -> UUID | None:
         """会話相手のIDを取得"""
         return await self.message_repo.get_partner_id(conversation_id, user_id)
 

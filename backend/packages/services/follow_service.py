@@ -1,4 +1,3 @@
-from typing import List, Optional, Tuple
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -49,26 +48,17 @@ class FollowService:
         return await self.repository.is_following(follower_id, following_id)
 
     async def get_followers(
-        self,
-        user_id: UUID,
-        cursor: Optional[str] = None,
-        limit: int = 20
-    ) -> Tuple[List[User], Optional[str]]:
+        self, user_id: UUID, cursor: str | None = None, limit: int = 20
+    ) -> tuple[list[User], str | None]:
         return await self.repository.get_followers(user_id, cursor, limit)
 
     async def get_following(
-        self,
-        user_id: UUID,
-        cursor: Optional[str] = None,
-        limit: int = 20
-    ) -> Tuple[List[User], Optional[str]]:
+        self, user_id: UUID, cursor: str | None = None, limit: int = 20
+    ) -> tuple[list[User], str | None]:
         return await self.repository.get_following(user_id, cursor, limit)
 
     async def get_follow_status(self, current_user_id: UUID, target_user_id: UUID) -> dict:
         is_following = await self.is_following(current_user_id, target_user_id)
         is_followed_by = await self.is_following(target_user_id, current_user_id)
 
-        return {
-            "is_following": is_following,
-            "is_followed_by": is_followed_by
-        }
+        return {"is_following": is_following, "is_followed_by": is_followed_by}

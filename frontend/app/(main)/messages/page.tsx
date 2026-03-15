@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { useConversations } from '@/hooks/use-dm';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Loader2, MessageCircle } from 'lucide-react';
@@ -70,7 +69,9 @@ export default function MessagesPage() {
                                 )}
                                 {conversation.unread_count > 0 && (
                                   <div className="bg-pink-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                                    {conversation.unread_count > 9 ? '9+' : conversation.unread_count}
+                                    {conversation.unread_count > 9
+                                      ? '9+'
+                                      : conversation.unread_count}
                                   </div>
                                 )}
                               </div>

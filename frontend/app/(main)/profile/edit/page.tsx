@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { useCurrentUser, useUpdateProfile } from '@/hooks/use-user';
-import { UserStatus, Gender, AgeRange } from '@/types';
+import { User, UserStatus, Gender, AgeRange } from '@/types';
 
 export default function ProfileEditPage() {
   const { user } = useAuth();
@@ -30,21 +30,20 @@ export default function ProfileEditPage() {
     }
   }, [user, router]);
 
+  const initializedRef = useRef(false);
+
   // プロフィールデータが読み込まれた時にフォームに設定
   useEffect(() => {
-    if (profileData) {
+    if (profileData && !initializedRef.current) {
       // 実際のレスポンスは直接ユーザーオブジェクトが返される
-      const profile = profileData as any;
-      console.log('Loading profile data:', profile);
-      console.log('Profile status from API:', profile.status, typeof profile.status);
-      console.log('Profile gender from API:', profile.gender, typeof profile.gender);
-      console.log('Profile age_range from API:', profile.age_range, typeof profile.age_range);
+      const profile = profileData as User;
 
       setNickname(profile.nickname || '');
       setStatus(profile.status || 'SEEKING');
       setGender(profile.gender || 'PRIVATE');
       setAgeRange(profile.age_range || 'TWENTIES');
       setBio(profile.bio || '');
+      initializedRef.current = true;
     }
   }, [profileData]);
 
@@ -60,12 +59,6 @@ export default function ProfileEditPage() {
         age_range: ageRange,
         bio: bio || null,
       };
-
-      console.log('Sending profile data:', profileData);
-      console.log('Raw form state:', { nickname, status, gender, ageRange, bio });
-      console.log('Type of status:', typeof status, status);
-      console.log('Type of gender:', typeof gender, gender);
-      console.log('Type of ageRange:', typeof ageRange, ageRange);
 
       await updateProfileMutation.mutateAsync(profileData);
 

@@ -1,17 +1,17 @@
-from typing import Dict, List, Optional
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from packages.services.personality_service import PersonalityService
 from packages.services.recommendation_service import RecommendationService
+
 from .questions import PERSONALITY_TYPES, QUESTIONS
 from .schemas import (
     AnswerSubmit,
     PersonalityResultResponse,
     PersonalityType,
-    QuestionsResponse,
     Question,
+    QuestionsResponse,
     RecommendedUsersResponse,
 )
 
@@ -21,7 +21,8 @@ class PersonalityUseCase:
         self.personality_service = PersonalityService(session)
         self.recommendation_service = RecommendationService(session)
 
-    def get_questions(self) -> QuestionsResponse:
+    @staticmethod
+    def get_questions() -> QuestionsResponse:
         """診断質問を取得"""
         questions = [Question(**q) for q in QUESTIONS]
         return QuestionsResponse(questions=questions)
@@ -38,7 +39,9 @@ class PersonalityUseCase:
         # プライマリ・セカンダリタイプを決定
         sorted_types = sorted(scores.items(), key=lambda x: x[1], reverse=True)
         primary_type = sorted_types[0][0]
-        secondary_type = sorted_types[1][0] if len(sorted_types) > 1 and sorted_types[1][1] > 0 else None
+        secondary_type = (
+            sorted_types[1][0] if len(sorted_types) > 1 and sorted_types[1][1] > 0 else None
+        )
 
         # 結果を保存
         result = await self.personality_service.save_result(
@@ -56,7 +59,7 @@ class PersonalityUseCase:
             created_at=result.created_at,
         )
 
-    async def get_my_result(self, user_id: UUID) -> Optional[PersonalityResultResponse]:
+    async def get_my_result(self, user_id: UUID) -> PersonalityResultResponse | None:
         """自分の診断結果を取得"""
         result = await self.personality_service.get_result(user_id)
         if not result:
@@ -64,12 +67,14 @@ class PersonalityUseCase:
 
         return PersonalityResultResponse(
             primary_type=self._get_type_info(result.primary_type),
-            secondary_type=self._get_type_info(result.secondary_type) if result.secondary_type else None,
+            secondary_type=self._get_type_info(result.secondary_type)
+            if result.secondary_type
+            else None,
             scores=result.scores,
             created_at=result.created_at,
         )
 
-    async def get_user_result(self, user_id: UUID) -> Optional[PersonalityResultResponse]:
+    async def get_user_result(self, user_id: UUID) -> PersonalityResultResponse | None:
         """指定ユーザーの診断結果を取得（他人の結果も取得可能）"""
         result = await self.personality_service.get_result(user_id)
         if not result:
@@ -77,7 +82,9 @@ class PersonalityUseCase:
 
         return PersonalityResultResponse(
             primary_type=self._get_type_info(result.primary_type),
-            secondary_type=self._get_type_info(result.secondary_type) if result.secondary_type else None,
+            secondary_type=self._get_type_info(result.secondary_type)
+            if result.secondary_type
+            else None,
             scores=result.scores,
             created_at=result.created_at,
         )
@@ -94,9 +101,9 @@ class PersonalityUseCase:
         )
         return RecommendedUsersResponse(users=users)
 
-    def _calculate_scores(self, answers: List[int]) -> Dict[str, int]:
+    def _calculate_scores(self, answers: list[int]) -> dict[str, int]:
         """回答からスコアを計算"""
-        scores = {key: 0 for key in PERSONALITY_TYPES.keys()}
+        scores = dict.fromkeys(PERSONALITY_TYPES.keys(), 0)
 
         for q_idx, option_idx in enumerate(answers):
             if q_idx >= len(QUESTIONS) or option_idx >= len(QUESTIONS[q_idx]["options"]):

@@ -1,7 +1,6 @@
-from typing import List, Optional
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from packages.models.personality_result import PersonalityResult
@@ -12,7 +11,7 @@ class PersonalityRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def get_by_user_id(self, user_id: UUID) -> Optional[PersonalityResult]:
+    async def get_by_user_id(self, user_id: UUID) -> PersonalityResult | None:
         result = await self.session.execute(
             select(PersonalityResult).where(PersonalityResult.user_id == user_id)
         )
@@ -32,16 +31,19 @@ class PersonalityRepository:
 
     async def get_users_by_personality_type(
         self,
-        personality_types: List[str],
+        personality_types: list[str],
         exclude_user_id: UUID,
         limit: int = 10,
-    ) -> List[User]:
+    ) -> list[User]:
         """特定の性格タイプのユーザーを取得"""
         result = await self.session.execute(
             select(User)
+            .join(PersonalityResult, User.id == PersonalityResult.user_id)
             .where(
-                User.id != exclude_user_id,
-                User.personality_type.in_(personality_types),
+                and_(
+                    PersonalityResult.personality_type.in_(personality_types),
+                    User.id != exclude_user_id
+                )
             )
             .limit(limit)
         )

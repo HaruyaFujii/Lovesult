@@ -9,10 +9,7 @@ interface ReplyFormProps {
   placeholder?: string;
 }
 
-export default function ReplyForm({
-  onSubmit,
-  placeholder = '返信する',
-}: ReplyFormProps) {
+export default function ReplyForm({ onSubmit, placeholder = '返信する' }: ReplyFormProps) {
   const { data: currentUser } = useCurrentUser();
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(false);
@@ -37,6 +34,10 @@ export default function ReplyForm({
   };
 
   const isValid = content.trim().length > 0 && content.length <= 300;
+
+  if (!currentUser) {
+    return <div className="bg-white p-4 text-center text-gray-500">ログインが必要です</div>;
+  }
 
   return (
     <div className="bg-white">
@@ -67,7 +68,12 @@ export default function ReplyForm({
             <button
               type="submit"
               disabled={loading || !isValid}
-              className="px-4 py-1.5 bg-pink-600 text-white font-semibold rounded-full hover:bg-pink-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm transition-colors"
+              className={`px-4 py-1.5 font-semibold rounded-full text-sm transition-colors min-w-[60px] ${
+                loading || !isValid
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-pink-600 text-white hover:bg-pink-700'
+              }`}
+              style={{ display: 'block' }} // Force display
             >
               {loading ? '送信中...' : '返信'}
             </button>

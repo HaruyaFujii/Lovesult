@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/hooks/useAuth";
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/hooks/useAuth';
 import {
   useGetAccountSummaryApiV1ApiV1AccountSummaryGet,
   useDeleteAccountApiV1ApiV1AccountDelete,
-} from "@/lib/api/generated/endpoints/account/account";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+} from '@/lib/api/generated/endpoints/account/account';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,15 +19,15 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Settings, Trash2, AlertTriangle, Loader2, Crown } from "lucide-react";
-import Link from "next/link";
+} from '@/components/ui/alert-dialog';
+import { Settings, Trash2, AlertTriangle, Loader2, Crown } from 'lucide-react';
+import Link from 'next/link';
 
 export default function SettingsPage() {
   const router = useRouter();
   const { signOut } = useAuth();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [confirmationText, setConfirmationText] = useState("");
+  const [confirmationText, setConfirmationText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
 
   // アカウントサマリーを取得
@@ -39,7 +39,7 @@ export default function SettingsPage() {
       onSuccess: async (response) => {
         if ((response as any).data?.success) {
           await signOut();
-          router.push("/");
+          router.push('/');
         } else {
           setIsDeleting(false);
         }
@@ -51,7 +51,7 @@ export default function SettingsPage() {
   });
 
   const handleDeleteAccount = async () => {
-    if (confirmationText !== "DELETE MY ACCOUNT") {
+    if (confirmationText !== 'DELETE MY ACCOUNT') {
       return;
     }
 
@@ -80,9 +80,7 @@ export default function SettingsPage() {
               <Crown className="h-5 w-5 text-yellow-500" />
               サブスクリプション
             </CardTitle>
-            <CardDescription>
-              現在のプラン: 無料プラン
-            </CardDescription>
+            <CardDescription>現在のプラン: 無料プラン</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
@@ -90,9 +88,7 @@ export default function SettingsPage() {
                 <p className="text-sm text-gray-600">プレミアム機能でより充実した体験を</p>
               </div>
               <Link href="/settings/subscription">
-                <Button variant="outline">
-                  プラン詳細
-                </Button>
+                <Button variant="outline">プラン詳細</Button>
               </Link>
             </div>
           </CardContent>
@@ -102,9 +98,7 @@ export default function SettingsPage() {
         <Card>
           <CardHeader>
             <CardTitle>アカウント情報</CardTitle>
-            <CardDescription>
-              あなたのアカウントに関する統計情報
-            </CardDescription>
+            <CardDescription>あなたのアカウントに関する統計情報</CardDescription>
           </CardHeader>
           <CardContent>
             {summary ? (
@@ -119,11 +113,15 @@ export default function SettingsPage() {
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">フォロワー</p>
-                  <p className="text-2xl font-bold">{(summary as any)?.data?.followers_count || 0}</p>
+                  <p className="text-2xl font-bold">
+                    {(summary as any)?.data?.followers_count || 0}
+                  </p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">フォロー中</p>
-                  <p className="text-2xl font-bold">{(summary as any)?.data?.following_count || 0}</p>
+                  <p className="text-2xl font-bold">
+                    {(summary as any)?.data?.following_count || 0}
+                  </p>
                 </div>
               </div>
             ) : (
@@ -141,9 +139,7 @@ export default function SettingsPage() {
               <AlertTriangle className="h-5 w-5" />
               危険な操作
             </CardTitle>
-            <CardDescription>
-              この操作は取り消すことができません
-            </CardDescription>
+            <CardDescription>この操作は取り消すことができません</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -195,13 +191,11 @@ export default function SettingsPage() {
           </div>
 
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>
-              キャンセル
-            </AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeleting}>キャンセル</AlertDialogCancel>
             <Button
               variant="destructive"
               onClick={handleDeleteAccount}
-              disabled={confirmationText !== "DELETE MY ACCOUNT" || isDeleting}
+              disabled={confirmationText !== 'DELETE MY ACCOUNT' || isDeleting}
             >
               {isDeleting ? (
                 <>
@@ -209,7 +203,7 @@ export default function SettingsPage() {
                   削除中...
                 </>
               ) : (
-                "アカウントを削除"
+                'アカウントを削除'
               )}
             </Button>
           </AlertDialogFooter>

@@ -24,10 +24,12 @@ export default function UsersPage() {
     }
   }, [authLoading, user, router]);
 
-  const filteredUsers = usersData?.users?.filter((user: User) =>
-    user.nickname?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.bio?.toLowerCase().includes(searchQuery.toLowerCase())
-  ) || [];
+  const filteredUsers =
+    usersData?.users?.filter(
+      (user: User) =>
+        user.nickname?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user.bio?.toLowerCase().includes(searchQuery.toLowerCase())
+    ) || [];
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -65,9 +67,7 @@ export default function UsersPage() {
 
   if (error) {
     return (
-      <div className="text-center py-8 text-red-500">
-        ユーザー一覧の読み込みに失敗しました
-      </div>
+      <div className="text-center py-8 text-red-500">ユーザー一覧の読み込みに失敗しました</div>
     );
   }
 
@@ -79,9 +79,7 @@ export default function UsersPage() {
             <Users className="h-6 w-6 text-pink-600" />
             <h1 className="text-2xl font-bold">ユーザー一覧</h1>
           </div>
-          <div className="text-sm text-gray-500">
-            {filteredUsers.length} 人のユーザー
-          </div>
+          <div className="text-sm text-gray-500">{filteredUsers.length} 人のユーザー</div>
         </div>
 
         <div className="mb-6">
@@ -99,9 +97,7 @@ export default function UsersPage() {
 
         <div className="space-y-4">
           {filteredUsers.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              ユーザーが見つかりません
-            </div>
+            <div className="text-center py-8 text-gray-500">ユーザーが見つかりません</div>
           ) : (
             filteredUsers.map((user: User) => (
               <div
@@ -119,15 +115,14 @@ export default function UsersPage() {
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       <h3 className="font-semibold">{user.nickname || 'ユーザー'}</h3>
-                      <Badge variant="secondary" className={`${getStatusColor(user.status)} text-white`}>
+                      <Badge
+                        variant="secondary"
+                        className={`${getStatusColor(user.status)} text-white`}
+                      >
                         {getStatusLabel(user.status)}
                       </Badge>
                     </div>
-                    {user.bio && (
-                      <p className="text-sm text-gray-600 line-clamp-1">
-                        {user.bio}
-                      </p>
-                    )}
+                    {user.bio && <p className="text-sm text-gray-600 line-clamp-1">{user.bio}</p>}
                     <div className="flex items-center gap-4 mt-1 text-xs text-gray-500">
                       <span>{user.followers_count} フォロワー</span>
                       <span>{user.following_count} フォロー中</span>

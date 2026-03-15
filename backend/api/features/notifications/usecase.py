@@ -1,9 +1,9 @@
-from typing import List, Optional, Tuple
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from packages.services.notification_service import NotificationService
+
 from .schemas import NotificationResponse
 
 
@@ -13,11 +13,8 @@ class NotificationUseCase:
         self.session = session
 
     async def get_notifications(
-        self,
-        user_id: UUID,
-        cursor: Optional[str] = None,
-        limit: int = 20
-    ) -> Tuple[List[NotificationResponse], Optional[str]]:
+        self, user_id: UUID, cursor: str | None = None, limit: int = 20
+    ) -> tuple[list[NotificationResponse], str | None]:
         notifications, next_cursor = await self.notification_service.get_notifications(
             user_id, cursor, limit
         )

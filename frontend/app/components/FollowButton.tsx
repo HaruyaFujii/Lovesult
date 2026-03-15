@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { Button } from "@/components/ui/button";
-import { useFollow, useFollowStatus } from "@/hooks/use-follow";
-import { useAuth } from "@/hooks/useAuth";
+import { Button } from '@/components/ui/button';
+import { useFollow, useFollowStatus } from '@/hooks/use-follow';
+import { useAuth } from '@/hooks/useAuth';
 
 interface FollowButtonProps {
   userId: string;
@@ -39,14 +39,17 @@ export function FollowButton({ userId }: FollowButtonProps) {
 
   return (
     <Button
-      variant={isFollowing ? "secondary" : "default"}
+      variant={isFollowing ? 'secondary' : 'default'}
       onClick={handleToggleFollow}
       disabled={isPending}
     >
       {isPending
-        ? (isFollowing ? "フォロー解除中..." : "フォロー中...")
-        : (isFollowing ? "フォロー中" : "フォローする")
-      }
+        ? isFollowing
+          ? 'フォロー解除中...'
+          : 'フォロー中...'
+        : isFollowing
+          ? 'フォロー中'
+          : 'フォローする'}
     </Button>
   );
 }

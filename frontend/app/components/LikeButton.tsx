@@ -1,18 +1,18 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useCallback } from "react";
-import { Button } from "@/components/ui/button";
-import { Heart } from "lucide-react";
-import { useQueryClient, useMutation } from "@tanstack/react-query";
-import { customInstance } from "@/lib/api/customInstance";
-import { cn } from "@/lib/utils";
+import { useState, useEffect, useCallback } from 'react';
+import { Button } from '@/components/ui/button';
+import { Heart } from 'lucide-react';
+import { useQueryClient, useMutation } from '@tanstack/react-query';
+import { customInstance } from '@/lib/api/customInstance';
+import { cn } from '@/lib/utils';
 
 interface LikeButtonProps {
   targetId: string;
   targetType?: 'post' | 'reply';
   isLiked: boolean;
   likesCount?: number;
-  size?: "sm" | "default";
+  size?: 'sm' | 'default';
   showCount?: boolean;
   // 後方互換性のため
   postId?: string;
@@ -23,7 +23,7 @@ export function LikeButton({
   targetType = 'post',
   isLiked: initialIsLiked,
   likesCount = 0,
-  size = "sm",
+  size = 'sm',
   showCount = true,
   postId,
 }: LikeButtonProps) {
@@ -46,9 +46,8 @@ export function LikeButton({
   // 各ボタンに固有のmutationを作成
   const likeMutation = useMutation({
     mutationFn: async () => {
-      const endpoint = targetType === 'post'
-        ? `/api/v1/posts/${id}/like`
-        : `/api/v1/replies/${id}/like`;
+      const endpoint =
+        targetType === 'post' ? `/api/v1/posts/${id}/like` : `/api/v1/replies/${id}/like`;
       await customInstance(endpoint, { method: 'POST' });
     },
     onMutate: () => {
@@ -68,9 +67,8 @@ export function LikeButton({
 
   const unlikeMutation = useMutation({
     mutationFn: async () => {
-      const endpoint = targetType === 'post'
-        ? `/api/v1/posts/${id}/like`
-        : `/api/v1/replies/${id}/like`;
+      const endpoint =
+        targetType === 'post' ? `/api/v1/posts/${id}/like` : `/api/v1/replies/${id}/like`;
       await customInstance(endpoint, { method: 'DELETE' });
     },
     onMutate: () => {
@@ -103,20 +101,10 @@ export function LikeButton({
       disabled={isLoading}
       variant="ghost"
       size={size}
-      className={cn(
-        "gap-1.5 transition-colors",
-        isLiked && "text-red-500 hover:text-red-600"
-      )}
+      className={cn('gap-1.5 transition-colors', isLiked && 'text-red-500 hover:text-red-600')}
     >
-      <Heart
-        className={cn(
-          "h-4 w-4",
-          isLiked && "fill-current"
-        )}
-      />
-      {showCount && count > 0 && (
-        <span className="text-xs">{count}</span>
-      )}
+      <Heart className={cn('h-4 w-4', isLiked && 'fill-current')} />
+      {showCount && count > 0 && <span className="text-xs">{count}</span>}
     </Button>
   );
 }

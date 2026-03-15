@@ -54,9 +54,7 @@ export const useCreatePostMutation = () => {
 export const useUpdatePostMutation = () => {
   return useUpdatePost({
     mutation: {
-      onSuccess: () => {
-        console.log('Post updated successfully');
-      },
+      onSuccess: () => {},
       onError: (error) => {
         console.error('Failed to update post:', error);
       },
@@ -72,9 +70,7 @@ export const useDeletePostMutation = () => {
       });
       return response;
     },
-    onSuccess: () => {
-      console.log('Post deleted successfully');
-    },
+    onSuccess: () => {},
     onError: (error) => {
       console.error('Failed to delete post:', error);
     },

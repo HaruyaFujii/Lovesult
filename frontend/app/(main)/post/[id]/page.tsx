@@ -3,10 +3,8 @@
 import { useEffect, useState, use } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
-import { useCurrentUser } from '@/hooks/use-user';
 import { usePost } from '@/hooks/use-post-detail';
 import { useReplies } from '@/hooks/use-replies';
-import { Post, Reply } from '@/types';
 import PostCard from '@/components/post/PostCard';
 import ReplyCard from '@/components/reply/ReplyCard';
 import PostForm from '@/components/post/PostForm';
@@ -24,54 +22,49 @@ export default function PostDetailPage({ params }: PostDetailPageProps) {
   const focusReplyId = searchParams.get('focus');
 
   const { user } = useAuth();
-  const { data: currentUser } = useCurrentUser();
   const [editing, setEditing] = useState(false);
   const [replyingTo, setReplyingTo] = useState<{ id: string; nickname: string } | null>(null);
   const [expandedReplies, setExpandedReplies] = useState<Set<string>>(new Set());
 
   // Use custom hooks for data fetching
-  const {
-    post,
-    isLoading: postLoading,
-    updatePost,
-    deletePost,
-    refetch: refetchPost,
-  } = usePost(resolvedParams.id);
+  const { post, isLoading: postLoading, updatePost, deletePost } = usePost(resolvedParams.id);
 
   const {
     replies,
     isLoading: repliesLoading,
     createReply,
     deleteReply,
-    refetch: refetchReplies,
   } = useReplies({ postId: resolvedParams.id });
 
   // No longer need to force refetch since we're not navigating to a new page
 
-  // Focus on specific reply if needed
+  // Use effect to scroll to focused reply, but manage expansion state separately
+  useEffect(() => {
+    if (focusReplyId && replies && replies.length > 0) {
+      const scrollToReply = () => {
+        const element = document.getElementById(`reply-${focusReplyId}`);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          element.classList.add('bg-blue-50');
+          setTimeout(() => element.classList.remove('bg-blue-50'), 2000);
+        }
+      };
+
+      const timer = setTimeout(scrollToReply, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [focusReplyId, replies]);
+
+  // Expand reply path when focus reply changes
   useEffect(() => {
     if (focusReplyId && replies && replies.length > 0) {
       const pathToExpand = findReplyPath(replies, focusReplyId);
-      if (pathToExpand) {
-        setExpandedReplies(prev => {
-          // Only update if the path has changed
-          const newSet = new Set(pathToExpand);
-          const hasChanged = pathToExpand.length !== prev.size ||
-            !pathToExpand.every(id => prev.has(id));
-          return hasChanged ? newSet : prev;
-        });
-        // Scroll to focused reply after a short delay to ensure DOM is ready
-        setTimeout(() => {
-          const element = document.getElementById(`reply-${focusReplyId}`);
-          if (element) {
-            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            element.classList.add('bg-blue-50');
-            setTimeout(() => element.classList.remove('bg-blue-50'), 2000);
-          }
-        }, 500); // Increased delay to ensure data is loaded
+      if (pathToExpand && pathToExpand.length > 0) {
+        const newSet = new Set(pathToExpand);
+        setExpandedReplies(newSet);
       }
     }
-  }, [focusReplyId, replies.length]); // Add replies.length as dependency
+  }, [focusReplyId]); // Only depend on focusReplyId to avoid cascading
 
   const handleUpdatePost = async (content: string) => {
     updatePost(content);
@@ -88,7 +81,7 @@ export default function PostDetailPage({ params }: PostDetailPageProps) {
     if (targetReply) {
       setReplyingTo({
         id: replyId,
-        nickname: targetReply.user?.nickname || 'Unknown'
+        nickname: targetReply.user?.nickname || 'Unknown',
       });
       // Scroll to reply form
       setTimeout(() => {
@@ -105,7 +98,9 @@ export default function PostDetailPage({ params }: PostDetailPageProps) {
   };
 
   const handleCreateReply = async (content: string) => {
-    createReply({ content, parentId: replyingTo?.id });
+    // If replyingTo is set, use that ID as parentId, otherwise use the post ID
+    const parentId = replyingTo?.id || resolvedParams.id;
+    createReply({ content, parentId });
     setReplyingTo(null);
   };
 
@@ -202,9 +197,7 @@ export default function PostDetailPage({ params }: PostDetailPageProps) {
           })}
 
           {replies.length === 0 && !repliesLoading && (
-            <div className="text-center py-12 text-gray-500">
-              まだリプライはありません
-            </div>
+            <div className="text-center py-12 text-gray-500">まだリプライはありません</div>
           )}
         </div>
       </div>
@@ -218,9 +211,7 @@ export default function PostDetailPage({ params }: PostDetailPageProps) {
           <div className="max-w-2xl mx-auto p-4">
             {replyingTo && (
               <div className="flex items-center justify-between mb-2 p-2 bg-gray-50 rounded">
-                <span className="text-sm text-gray-600">
-                  @{replyingTo.nickname}さんに返信
-                </span>
+                <span className="text-sm text-gray-600">@{replyingTo.nickname}さんに返信</span>
                 <button
                   onClick={() => setReplyingTo(null)}
                   className="text-sm text-gray-500 hover:text-gray-700"
@@ -231,11 +222,7 @@ export default function PostDetailPage({ params }: PostDetailPageProps) {
             )}
             <ReplyForm
               onSubmit={handleCreateReply}
-              placeholder={
-                replyingTo
-                  ? `@${replyingTo.nickname}さんに返信`
-                  : 'リプライを追加...'
-              }
+              placeholder={replyingTo ? `@${replyingTo.nickname}さんに返信` : 'リプライを追加...'}
             />
           </div>
         </div>

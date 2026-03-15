@@ -1,6 +1,6 @@
-# LoveTalk - 恋愛相談SNS
+# Lovesult - マッチングSNSアプリケーション
 
-恋愛相談を聞きたい人と聞いてほしい人をつなげるSNSアプリケーション
+恋愛ステータスと性格診断を基にしたマッチングSNSアプリケーション
 
 ## 📁 プロジェクト構成
 
@@ -12,10 +12,16 @@ Lovesult/
 │   │   ├── config/          # 設定管理
 │   │   ├── core/            # 共通機能（認証、依存関係）
 │   │   └── features/        # 機能別API実装
-│   │       ├── health/      # ├─ router.py
-│   │       ├── users/       # ├─ usecase.py
-│   │       ├── posts/       # └─ schemas.py
-│   │       └── replies/     # (各feature共通構成)
+│   │       ├── account/     # アカウント管理
+│   │       ├── dm/          # ダイレクトメッセージ
+│   │       ├── follows/     # フォロー機能
+│   │       ├── likes/       # いいね機能
+│   │       ├── notifications/ # 通知機能
+│   │       ├── personality/ # 性格診断
+│   │       ├── posts/       # 投稿（リプライ統合）
+│   │       ├── reports/     # 通報機能
+│   │       ├── search/      # 検索機能
+│   │       └── users/       # ユーザー管理
 │   ├── packages/            # ドメイン・インフラ層
 │   │   ├── models/          # SQLModelテーブル定義
 │   │   ├── repositories/    # データアクセス層
@@ -26,6 +32,14 @@ Lovesult/
     └── app/                 # App Router構成
         ├── (auth)/          # 認証ページ群
         ├── (main)/          # メインアプリ
+        │   ├── messages/    # DM機能
+        │   ├── notifications/ # 通知
+        │   ├── personality/ # 性格診断
+        │   ├── post/        # 投稿詳細
+        │   ├── profile/     # プロフィール
+        │   ├── search/      # 検索
+        │   ├── settings/    # 設定
+        │   └── timeline/    # タイムライン
         ├── components/      # UIコンポーネント
         ├── lib/             # ライブラリ設定
         ├── hooks/           # カスタムフック
@@ -35,10 +49,12 @@ Lovesult/
 ## 🏗 アーキテクチャ
 
 ### 技術スタック
-- **Frontend**: Next.js 14 (App Router) + TypeScript + Tailwind CSS
+- **Frontend**: Next.js 16 (App Router) + TypeScript + Tailwind CSS + shadcn/ui
 - **Backend**: FastAPI + SQLModel + Alembic
 - **Database**: PostgreSQL (Supabase)
 - **Authentication**: Supabase Auth (JWT)
+- **Package Manager**: Backend - uv / Frontend - Yarn 4
+- **API Client Generation**: Orval (OpenAPI → TypeScript)
 
 ### アーキテクチャパターン
 
@@ -53,15 +69,10 @@ Repository Layer (Data Access)
 Model Layer (Data Structure)
 ```
 
-各featureは3ファイル構成：
-- **router.py**: エンドポイント定義とHTTPハンドリング
-- **usecase.py**: ビジネスロジックとサービス層の呼び出し
-- **schemas.py**: リクエスト/レスポンスのスキーマ定義
-
 #### Frontend - Component-Based Architecture
 - **App Router**: ファイルベースルーティング
 - **Server/Client Components**: 適切な分離
-- **API通信**: Supabase Auth + Backend API
+- **API通信**: 自動生成されたTypeScriptクライアント使用
 
 ## 🚀 セットアップ手順
 
@@ -83,33 +94,23 @@ Model Layer (Data Structure)
    - Site URL: `http://localhost:3000`
    - Redirect URLs: `http://localhost:3000/**`
 
-#### データベース設定
-SupabaseのSQL Editorで以下を実行（Alembicマイグレーションを使う場合は不要）：
-
-```sql
--- UUIDの拡張を有効化
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
--- 注意: Alembicでマイグレーションを実行する場合、このSQLは不要です
-```
-
 ### 3. 環境変数の設定
 
 #### Backend (.env)
 ```bash
 cd backend
-cp .env.example .env
+cp .env.example .env  # .env.exampleがない場合は新規作成
 ```
 
 `.env`を編集：
 ```env
 # Supabase（ダッシュボードから取得）
 SUPABASE_URL=https://YOUR_PROJECT_ID.supabase.co
-SUPABASE_ANON_KEY=eyJhbGci...  # Project API keys > anon
-SUPABASE_SERVICE_ROLE_KEY=eyJhbGci...  # Project API keys > service_role
-SUPABASE_JWT_SECRET=your-jwt-secret  # Settings > API > JWT Settings > JWT Secret
+SUPABASE_ANON_KEY=eyJhbGci...
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGci...
+SUPABASE_JWT_SECRET=your-jwt-secret
 
-# Database（Settings > Database > Connection string）
+# Database
 DATABASE_URL=postgresql+asyncpg://postgres.YOUR_PROJECT_ID:YOUR_PASSWORD@aws-0-ap-northeast-1.pooler.supabase.com:6543/postgres
 
 # App設定
@@ -121,13 +122,13 @@ CORS_ORIGINS=http://localhost:3000
 #### Frontend (.env.local)
 ```bash
 cd frontend
-cp .env.example .env.local
+cp .env.example .env.local  # .env.exampleがない場合は新規作成
 ```
 
 `.env.local`を編集：
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT_ID.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGci...  # anon keyと同じ
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGci...
 NEXT_PUBLIC_API_URL=http://localhost:8000
 ```
 
@@ -136,20 +137,19 @@ NEXT_PUBLIC_API_URL=http://localhost:8000
 ```bash
 cd backend
 
-# Python 3.11が必要
-python -m venv venv
-source venv/bin/activate  # Windowsの場合: venv\Scripts\activate
+# uvのインストール（未インストールの場合）
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # 依存関係インストール
-pip install -e ".[dev]"
+uv sync --dev
 
 # データベースマイグレーション実行
-alembic upgrade head
+uv run alembic upgrade head
 
 # 開発サーバー起動
 make dev
 # または
-uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
+uv run uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 Backend APIドキュメント: http://localhost:8000/docs
@@ -162,49 +162,26 @@ cd frontend
 # 依存関係インストール（Yarn 4使用）
 yarn install
 
+# API クライアント生成
+yarn gen
+
 # 開発サーバー起動
 yarn dev
 ```
 
 Frontend: http://localhost:3000
 
-## 📝 重要な注意事項
-
-### してはいけないこと ❌
-
-1. **環境変数をGitにコミットしない**
-   - `.env`、`.env.local`は絶対にコミットしない
-   - 既に`.gitignore`に含まれているが確認すること
-
-2. **Service Role Keyをフロントエンドで使わない**
-   - フロントエンドでは必ずAnon Keyを使用
-   - Service Role Keyはバックエンドのみ
-
-3. **直接データベースに接続しない**
-   - フロントエンドから直接Supabaseのデータベースを操作しない
-   - 必ずバックエンドAPI経由でデータ操作を行う
-
-4. **JWTシークレットを公開しない**
-   - JWT検証はバックエンドでのみ行う
-   - フロントエンドに露出させない
-
-### 必須の作業 ✅
-
-1. **Supabaseプロジェクトの作成と設定**
-2. **環境変数の設定（Backend/Frontend両方）**
-3. **データベースマイグレーションの実行**
-4. **初回ユーザー登録時のフロー確認**
-
 ## 🔧 開発コマンド
 
 ### Backend
 ```bash
 make dev          # 開発サーバー起動
-make lint         # Lintチェック
+make lint         # Lintチェック (ruff + mypy)
 make fmt          # コードフォーマット
+make fix          # 自動修正
 make test         # テスト実行
 make migrate      # マイグレーション適用
-make gen-openapi  # OpenAPIスキーマ生成
+make gen          # OpenAPIスキーマ生成
 ```
 
 ### Frontend
@@ -213,63 +190,150 @@ yarn dev          # 開発サーバー起動
 yarn build        # ビルド
 yarn lint         # Lintチェック
 yarn fmt          # コードフォーマット
-yarn type-check   # 型チェック
+yarn gen          # APIクライアント生成
 ```
 
 ## 🌟 機能一覧
 
-### Phase 1 - MVP機能（実装済み） ✅
-- ✅ メールアドレス/パスワード認証（Supabase Auth）
-- ✅ ユーザープロフィール（ニックネーム、ステータス、性別、年代、自己紹介）
-- ✅ 恋愛ステータス（恋愛中/失恋中/探し中）
-- ✅ タイムライン（同じステータス優先表示：80%、他ステータス：20%）
-- ✅ 投稿機能（作成・編集・削除）
-- ✅ リプライ機能（作成・削除）
-- ✅ 無限スクロール
-- ✅ ステータスフィルター
-- ✅ 投稿時ユーザー情報スナップショット機能
+### 実装済み機能 ✅
 
-### Phase 2 - 拡張機能（部分実装）
+#### 基本機能
+- ✅ **認証システム**: Supabase Authによるメール/パスワード認証
+- ✅ **ユーザープロフィール**: ニックネーム、ステータス、性別、年代、自己紹介、アバター
+- ✅ **恋愛ステータス**: 恋愛中(IN_LOVE) / 失恋中(HEARTBROKEN) / 探し中(SEEKING)
 
-#### 実装済み
-- ✅ **データベース設計**: follows, likes, notifications, banned_words, reports テーブル
-- ✅ **フォロー機能（Backend）**:
-  - フォロー/アンフォロー API
-  - フォロワー/フォロー中一覧 API
-  - フォロー状態確認 API
-  - フォロワー・フォロー数管理
+#### 投稿機能
+- ✅ **投稿管理**: 作成・編集・削除（リプライを統合した階層構造）
+- ✅ **リプライ機能**: ネストされた返信（無限階層対応）
+- ✅ **いいね機能**: 投稿・リプライへのいいね
+- ✅ **タイムライン**: ステータス優先表示、無限スクロール、フォロー中タイムライン
 
-#### 実装中/未実装
-- ⏳ **いいね機能**: データベース設計済み、API未実装
-- ⏳ **プロフィールアイコン**: データベース設計済み、Supabase Storage設定・API未実装
-- ⏳ **他ユーザープロフィール画面**: Backend準備済み、Frontend未実装
-- ⏳ **通知機能**: データベース設計済み、API・通知生成ロジック未実装
-- ⏳ **暴言フィルター**: データベース設計済み、フィルタリングロジック未実装
-- ⏳ **通報機能**: データベース設計済み、API未実装
-- ⏳ **タイムライン拡張**: フォロー中タブ未実装
+#### ソーシャル機能
+- ✅ **フォロー機能**: フォロー/アンフォロー、フォロワー・フォロー中一覧
+- ✅ **検索機能**: ユーザー検索、投稿検索（フィルタリング対応）
+- ✅ **通知システム**: フォロー、いいね、リプライの通知
 
-#### フロントエンド実装予定
-- 📱 フォローボタンコンポーネント
-- 📱 タイムラインタブ切り替え（おすすめ/フォロー中）
-- 📱 フォロー・フォロワー一覧ページ
-- 📱 他ユーザープロフィールページ
-- 📱 いいねボタンコンポーネント
-- 📱 アバターアップロードUI
-- 📱 通知ページ・バッジ
-- 📱 通報モーダル
+#### 性格診断・マッチング
+- ✅ **性格診断テスト**: 20問の質問による性格タイプ判定
+- ✅ **16タイプ性格分類**: MBTI風の性格タイプ分類
+- ✅ **レコメンデーション**: 相性の良いユーザーの提案
 
-### データフロー
-1. ユーザー登録 → Supabase Authでアカウント作成
-2. プロフィール設定 → Backend APIでユーザー情報保存
-3. 投稿/リプライ → Backend API → PostgreSQL（スナップショット情報付き）
-4. タイムライン取得 → ステータスに基づくフィルタリング
-5. フォロー関係 → カウント自動更新
+#### DM機能
+- ✅ **ダイレクトメッセージ**: 1対1のメッセージング
+- ✅ **会話管理**: 会話一覧、既読管理、未読数表示
+- ✅ **リアルタイム更新**: ポーリングによる新着メッセージ取得
+
+#### モデレーション
+- ✅ **通報機能**: 不適切な投稿・ユーザーの通報
+- ✅ **暴言フィルター**: 禁止ワードによるコンテンツフィルタリング
+
+#### UI/UX機能
+- ✅ **レスポンシブデザイン**: モバイル最適化
+- ✅ **プルトゥリフレッシュ**: モバイルでの更新
+- ✅ **スワイプバック**: iOSライクなナビゲーション
+- ✅ **ボトムナビゲーション**: モバイル向けナビゲーション
+- ✅ **FAB (Floating Action Button)**: 投稿作成ボタン
+
+### データベース構成
+
+#### 主要テーブル
+- **users**: ユーザー情報、プロフィール
+- **posts**: 投稿とリプライ（統合管理）
+- **likes**: いいね情報
+- **reply_likes**: リプライへのいいね
+- **follows**: フォロー関係
+- **conversations**: DM会話
+- **direct_messages**: DMメッセージ
+- **conversation_participants**: 会話参加者
+- **notifications**: 通知
+- **personality_results**: 性格診断結果
+- **reports**: 通報情報
+- **banned_words**: 禁止ワード
+
+## 📝 API仕様（主要エンドポイント）
+
+### 認証・アカウント
+```
+POST   /api/v1/account/signup         # サインアップ
+POST   /api/v1/account/login          # ログイン
+PUT    /api/v1/account/update         # アカウント更新
+```
+
+### ユーザー
+```
+GET    /api/v1/users/me               # 現在のユーザー情報
+GET    /api/v1/users/{user_id}        # ユーザー詳細
+PUT    /api/v1/users/me               # プロフィール更新
+GET    /api/v1/users                  # ユーザー一覧
+```
+
+### 投稿
+```
+GET    /api/v1/posts                  # タイムライン取得
+POST   /api/v1/posts                  # 投稿作成
+GET    /api/v1/posts/{post_id}        # 投稿詳細
+PUT    /api/v1/posts/{post_id}        # 投稿更新
+DELETE /api/v1/posts/{post_id}        # 投稿削除
+GET    /api/v1/posts/{post_id}/replies # リプライ取得
+POST   /api/v1/posts/{post_id}/replies # リプライ作成
+```
+
+### いいね
+```
+POST   /api/v1/posts/{post_id}/like   # いいねする
+DELETE /api/v1/posts/{post_id}/unlike # いいね解除
+POST   /api/v1/posts/{post_id}/replies/{reply_id}/like   # リプライにいいね
+DELETE /api/v1/posts/{post_id}/replies/{reply_id}/unlike # リプライのいいね解除
+```
+
+### フォロー
+```
+POST   /api/v1/users/{user_id}/follow         # フォロー
+DELETE /api/v1/users/{user_id}/follow         # フォロー解除
+GET    /api/v1/users/{user_id}/follow-status  # フォロー状態
+GET    /api/v1/users/{user_id}/followers      # フォロワー一覧
+GET    /api/v1/users/{user_id}/following      # フォロー中一覧
+```
+
+### DM
+```
+GET    /api/v1/conversations          # 会話一覧
+POST   /api/v1/conversations          # 会話作成
+GET    /api/v1/conversations/{conversation_id}/messages # メッセージ取得
+POST   /api/v1/conversations/{conversation_id}/messages # メッセージ送信
+POST   /api/v1/conversations/{conversation_id}/read     # 既読にする
+```
+
+### 性格診断
+```
+GET    /api/v1/personality/questions  # 診断質問取得
+POST   /api/v1/personality/submit     # 診断結果送信
+GET    /api/v1/personality/me         # 自分の診断結果
+GET    /api/v1/personality/recommendations # おすすめユーザー
+```
+
+### 検索
+```
+GET    /api/v1/search/posts           # 投稿検索
+GET    /api/v1/search/users           # ユーザー検索
+```
+
+### 通知
+```
+GET    /api/v1/notifications          # 通知一覧
+POST   /api/v1/notifications/{id}/read # 既読にする
+```
+
+### 通報
+```
+POST   /api/v1/reports                # 通報送信
+```
 
 ## 🐛 トラブルシューティング
 
 ### よくある問題
 
-1. **「Invalid authentication credentials」エラー**
+1. **認証エラー**
    - JWT Secretが正しく設定されているか確認
    - Supabase Anon Keyが正しいか確認
 
@@ -283,57 +347,41 @@ yarn type-check   # 型チェック
 4. **マイグレーションエラー**
    - DATABASE_URLの末尾に `?sslmode=require` を追加してみる
 
-## 📚 プロジェクト詳細
-
-### Backend ドキュメント
-- **メインREADME**: [backend/README.md](backend/README.md)
-- **API層**: [backend/api/README.md](backend/api/README.md)
-- **機能別API**: [backend/api/features/README.md](backend/api/features/README.md)
-- **モデル層**: [backend/packages/models/README.md](backend/packages/models/README.md)
-- **マイグレーション**: [backend/packages/db/migrations/README.md](backend/packages/db/migrations/README.md)
-
-### Frontend ドキュメント
-- **メインREADME**: [frontend/README.md](frontend/README.md)
-
-## 📋 Phase 2 実装進捗
-
-### 完了項目
-1. **データベース設計・マイグレーション**
-   - `follows` テーブル：フォロー関係管理
-   - `likes` テーブル：投稿いいね管理
-   - `notifications` テーブル：通知管理
-   - `banned_words` テーブル：暴言フィルター
-   - `reports` テーブル：通報管理
-   - `users` テーブル：avatar_url, followers_count, following_count追加
-   - `posts` テーブル：author_avatar_url, likes_count追加
-
-2. **フォロー機能（Backend）**
-   - Follow Model/Repository/Service 実装
-   - Follow API エンドポイント実装
-   - フォロー関係のCRUD操作
-   - フォロー数カウント自動更新
-   - フォロワー・フォロー中一覧（ペジネーション対応）
-
-### 次のステップ
-1. **いいね機能実装**
-2. **アバターアップロード機能**
-3. **フロントエンド実装（フォロー機能）**
-4. **通知システム実装**
-5. **コンテンツフィルタリング実装**
-
-### API仕様（Phase 2追加分）
-
-#### フォロー機能
-```
-POST   /api/v1/users/{user_id}/follow         # フォローする
-DELETE /api/v1/users/{user_id}/follow         # フォロー解除
-GET    /api/v1/users/{user_id}/follow-status  # フォロー状態確認
-GET    /api/v1/users/{user_id}/followers      # フォロワー一覧
-GET    /api/v1/users/{user_id}/following      # フォロー中一覧
-```
+5. **APIクライアント生成エラー**
+   - バックエンドが起動していることを確認
+   - `make gen` (backend) → `yarn gen` (frontend) の順で実行
 
 ## 🔒 セキュリティ
 
-- Supabase Row Level Security (RLS) は現在無効
-- 認証はJWT検証でバックエンド側で実装
+- JWT認証によるAPIアクセス制御
+- Supabase Row Level Security (RLS) は現在無効（本番では有効化推奨）
+- 暴言フィルターによるコンテンツ制御
+- 通報機能による不適切コンテンツ管理
+- Service Role Keyはバックエンドのみで使用
 - 本番環境では必ずHTTPS化すること
+
+## 📋 今後の開発予定
+
+### 優先度高
+- [ ] リアルタイムメッセージング（WebSocket）
+- [ ] プッシュ通知
+- [ ] 画像アップロード最適化
+- [ ] ブロック機能
+- [ ] メッセージの削除機能
+
+### 優先度中
+- [ ] グループメッセージング
+- [ ] 投稿の下書き機能
+- [ ] ハッシュタグ機能
+- [ ] メンション機能
+- [ ] 投稿のブックマーク
+
+### 優先度低
+- [ ] ダークモード
+- [ ] 多言語対応
+- [ ] PWA対応
+- [ ] アナリティクス機能
+
+## 📄 ライセンス
+
+プロプライエタリ - 無断での使用・複製・配布を禁止します

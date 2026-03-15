@@ -1,9 +1,9 @@
 import {
   useGetReplies,
-  useCreateReply,
-  useDeleteReply,
-  type CreateReplyMutationBody,
-} from '@/lib/api/generated/endpoints/replies/replies';
+  useCreatePost,
+  useDeletePost,
+  type CreatePostMutationBody,
+} from '@/lib/api/generated/endpoints/posts/posts';
 
 export const useReplies = (postId: string, enabled = true) => {
   return useGetReplies(postId, {
@@ -16,11 +16,9 @@ export const useReplies = (postId: string, enabled = true) => {
 };
 
 export const useCreateReplyMutation = () => {
-  return useCreateReply({
+  return useCreatePost({
     mutation: {
-      onSuccess: () => {
-        console.log('Reply created successfully');
-      },
+      onSuccess: () => {},
       onError: (error) => {
         console.error('Failed to create reply:', error);
       },
@@ -29,11 +27,9 @@ export const useCreateReplyMutation = () => {
 };
 
 export const useDeleteReplyMutation = () => {
-  return useDeleteReply({
+  return useDeletePost({
     mutation: {
-      onSuccess: () => {
-        console.log('Reply deleted successfully');
-      },
+      onSuccess: () => {},
       onError: (error) => {
         console.error('Failed to delete reply:', error);
       },

@@ -31,10 +31,7 @@ export function FAB() {
         <Plus size={28} strokeWidth={2.5} />
       </button>
 
-      <CreatePostModal
-        isOpen={isOpen}
-        onClose={() => setIsOpen(false)}
-      />
+      <CreatePostModal isOpen={isOpen} onClose={() => setIsOpen(false)} />
     </>
   );
 }
