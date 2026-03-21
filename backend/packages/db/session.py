@@ -13,6 +13,9 @@ engine = create_async_engine(
     future=True,
     pool_pre_ping=True,
     pool_recycle=300,
+    connect_args={
+        "statement_cache_size": 0,  # Transaction pooler対応
+    },
 )
 
 async_session_maker = async_sessionmaker(
