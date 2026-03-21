@@ -5,7 +5,6 @@ import { useEffect } from 'react';
 export function FetchInterceptor() {
   useEffect(() => {
     const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || '';
-    console.log('[FetchInterceptor] API Base URL:', apiBaseUrl || 'NOT SET');
 
     // Store original fetch
     const originalFetch = window.fetch;
