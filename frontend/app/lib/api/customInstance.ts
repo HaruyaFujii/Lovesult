@@ -86,7 +86,7 @@ export const customInstance = async <T>(
           await supabase.auth.signOut();
           window.location.href = '/login';
         } catch (signOutError) {
-          console.error('Failed to sign out on 401:', signOutError);
+          // Silently fail
         }
       }
     }

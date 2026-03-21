@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
-import '@/lib/api/client';
 import { AuthProvider } from '@/providers/AuthProvider';
 import { QueryProvider } from '@/providers/QueryProvider';
+import { ApiClientInitializer } from '@/components/ApiClientInitializer';
 import { Toaster } from 'sonner';
 
 const geistSans = Geist({
@@ -29,6 +29,7 @@ export default function RootLayout({
   return (
     <html lang="ja">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <ApiClientInitializer />
         <QueryProvider>
           <AuthProvider>{children}</AuthProvider>
         </QueryProvider>
