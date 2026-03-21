@@ -1,0 +1,39 @@
+# ============================================
+# 開発用 Dockerfile
+# ホットリロード対応
+# ============================================
+
+FROM python:3.11-slim
+
+WORKDIR /workspace
+
+# 開発ツールもインストール
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# uvのインストール
+RUN pip install --no-cache-dir uv
+
+# backendディレクトリの依存関係ファイルをコピー
+COPY ./backend/pyproject.toml /workspace/backend/pyproject.toml
+COPY ./backend/uv.lock /workspace/backend/uv.lock
+
+# 依存関係のインストール（開発依存含む）
+WORKDIR /workspace/backend
+RUN uv sync --frozen
+
+# 作業ディレクトリを設定
+WORKDIR /workspace/backend
+
+# 環境変数でPython実行環境を設定
+ENV PATH="/workspace/backend/.venv/bin:$PATH"
+
+# ソースコードはマウントするのでCOPY不要
+
+# ポート
+EXPOSE 8000
+
+# 開発サーバー起動（ホットリロード有効）
+CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
