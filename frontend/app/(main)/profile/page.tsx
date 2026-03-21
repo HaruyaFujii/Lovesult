@@ -84,7 +84,9 @@ export default function ProfilePage() {
                         currentAvatarUrl={profile?.avatar_url || ''}
                         userName={profile.name || profile.nickname}
                         userId={profile.id}
-                        onAvatarUpdate={setCurrentAvatarUrl}
+                        onAvatarUpdate={() => {
+                          // アバター更新後の処理（必要に応じて）
+                        }}
                       />
                       <div className="flex-1 min-w-0">
                         <h1 className="text-xl font-bold text-gray-900 truncate">
