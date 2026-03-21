@@ -1,26 +1,25 @@
 # ============================================
 # 本番用 Dockerfile
-# Railway / Cloud Run 等でそのまま使用
+# Railway デプロイ用
+# Root Directory: /backend を前提
 # ============================================
 
 # ---- ビルドステージ ----
-FROM python:3.11-slim as builder
+FROM python:3.11-slim AS builder
 
-WORKDIR /workspace
+WORKDIR /app
 
 # uvのインストール
 RUN pip install --no-cache-dir uv
 
-# backendディレクトリの依存関係ファイルをコピー
-COPY ./backend/pyproject.toml /workspace/backend/pyproject.toml
-COPY ./backend/uv.lock /workspace/backend/uv.lock
+# 依存関係ファイルをコピー（Root Directoryがbackendなので直接参照）
+COPY pyproject.toml uv.lock ./
 
 # 依存関係のインストール（uvを使用）
-WORKDIR /workspace/backend
 RUN uv sync --no-dev --frozen
 
 # ---- 実行ステージ ----
-FROM python:3.11-slim as runner
+FROM python:3.11-slim AS runner
 
 WORKDIR /app
 
@@ -29,10 +28,10 @@ RUN addgroup --system --gid 1001 appgroup \
     && adduser --system --uid 1001 --gid 1001 appuser
 
 # 依存関係をビルドステージからコピー
-COPY --from=builder /workspace/backend/.venv /app/.venv
+COPY --from=builder /app/.venv /app/.venv
 
-# アプリケーションコード（backendディレクトリの内容のみ）
-COPY --chown=appuser:appgroup ./backend /app
+# アプリケーションコードをコピー（Root Directoryがbackendなので . でOK）
+COPY --chown=appuser:appgroup . .
 
 # 環境変数でPython実行環境を設定
 ENV PATH="/app/.venv/bin:$PATH"
