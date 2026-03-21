@@ -36,7 +36,7 @@ export function NotificationBell() {
   const { data: unreadData } = useGetUnreadNotificationCount();
 
   // 通知一覧を取得
-  const { data: notificationsData, refetch } = useGetNotifications(10, isOpen);
+  const { data: notificationsData } = useGetNotifications(10, isOpen);
 
   const markAsReadMutation = useMarkNotificationAsRead();
 

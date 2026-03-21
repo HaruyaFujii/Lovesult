@@ -22,7 +22,6 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Flag } from 'lucide-react';
-import { useCreateReport } from '@/lib/api/generated/endpoints/reports/reports';
 import { useMutation } from '@tanstack/react-query';
 import { customInstance } from '@/lib/api/customInstance';
 
@@ -63,7 +62,7 @@ export function ReportDialog({
       setReportType('');
       setReason('');
     },
-    onError: (error: any) => {
+    onError: () => {
       // エラーハンドリングはフォーム内で処理
     },
   });

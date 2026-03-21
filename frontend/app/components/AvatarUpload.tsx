@@ -23,12 +23,7 @@ interface AvatarUploadProps {
   onAvatarUpdate?: (newAvatarUrl: string) => void;
 }
 
-export function AvatarUpload({
-  currentAvatarUrl,
-  userName,
-  userId,
-  onAvatarUpdate,
-}: AvatarUploadProps) {
+export function AvatarUpload({ currentAvatarUrl, userName, onAvatarUpdate }: AvatarUploadProps) {
   const [open, setOpen] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -104,8 +99,6 @@ export function AvatarUpload({
       queryClient.invalidateQueries({ queryKey: ['/api/v1/users'] });
     } catch (error: any) {
       console.error('Avatar upload error:', error);
-
-      const errorMessage = error?.message || error?.data?.detail || 'アバターの更新に失敗しました';
 
       // エラーハンドリングは必要に応じて追加
     } finally {

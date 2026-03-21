@@ -3,9 +3,6 @@ import {
   useCreatePost,
   useGetPost,
   useUpdatePost,
-  useDeletePost,
-  type CreatePostMutationBody,
-  type UpdatePostMutationBody,
 } from '@/lib/api/generated/endpoints/posts/posts';
 import { useMutation } from '@tanstack/react-query';
 import { customInstance } from '@/lib/api/customInstance';

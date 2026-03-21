@@ -14,7 +14,7 @@ import { PullToRefreshContainer } from '@/components/layout/PullToRefreshContain
 import { DeleteConfirmModal } from '@/components/ui/DeleteConfirmModal';
 
 export default function TimelinePage() {
-  const { user } = useAuth();
+  const {} = useAuth();
   const { data: currentUser } = useCurrentUser();
   const queryClient = useQueryClient();
   const deletePost = useDeletePostMutation();

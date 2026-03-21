@@ -1,7 +1,4 @@
-import {
-  useGetUser,
-  type UpdateCurrentUserMutationBody,
-} from '@/lib/api/generated/endpoints/users/users';
+import { useGetUser } from '@/lib/api/generated/endpoints/users/users';
 import { customInstance } from '@/lib/api/customInstance';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import type { UserUpdate, UserResponse } from '@/lib/api/generated/models';

@@ -26,7 +26,7 @@ export default function ReplyForm({ onSubmit, placeholder = '返信する' }: Re
     try {
       await onSubmit(content.trim());
       setContent('');
-    } catch (err: any) {
+    } catch {
       // エラーハンドリングはサイレント
     } finally {
       setLoading(false);

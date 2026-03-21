@@ -144,7 +144,7 @@ export function useSendMessage(conversationId: string) {
       // エラー時に復元するためのデータを返す
       return { previousMessages };
     },
-    onSuccess: (serverMessage, content, context) => {
+    onSuccess: (serverMessage) => {
       // サーバーレスポンスで一時メッセージを置き換え（全ての該当するクエリを更新）
       queryClient.setQueriesData<MessageListResponse>(
         { queryKey: ['messages', conversationId], exact: false },
@@ -179,7 +179,7 @@ export function useSendMessage(conversationId: string) {
       // 会話一覧も更新
       queryClient.invalidateQueries({ queryKey: ['conversations'] });
     },
-    onError: (error, content, context) => {
+    onError: (_error, content) => {
       // エラー時は一時メッセージをエラー状態にマーク（全ての該当するクエリを更新）
       queryClient.setQueriesData<MessageListResponse>(
         { queryKey: ['messages', conversationId], exact: false },

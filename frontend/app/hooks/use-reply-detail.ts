@@ -6,7 +6,7 @@ import { getPost } from '@/lib/api/generated/endpoints/posts/posts';
 
 export const useReplyDetail = (replyId: string) => {
   const queryClient = useQueryClient();
-  const [optimisticReply, setOptimisticReply] = useState<Reply | null>(null);
+  const [optimisticReply] = useState<Reply | null>(null);
 
   // Fetch reply using generated API client
   const {

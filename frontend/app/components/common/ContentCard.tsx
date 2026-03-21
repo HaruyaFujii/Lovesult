@@ -1,6 +1,5 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatDistanceToNowJST } from '@/lib/utils/date';
 import { getUserStatusLabel } from '@/lib/utils/enum-labels';
@@ -49,7 +48,6 @@ interface ContentCardProps {
 }
 
 export function ContentCard({
-  id,
   content,
   author,
   createdAt,
@@ -61,8 +59,6 @@ export function ContentCard({
   className,
   children,
 }: ContentCardProps) {
-  const router = useRouter();
-
   const handleClick = (e: React.MouseEvent) => {
     // Don't navigate if clicking on interactive elements
     const target = e.target as HTMLElement;

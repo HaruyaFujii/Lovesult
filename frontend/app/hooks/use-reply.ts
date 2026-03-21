@@ -2,7 +2,6 @@ import {
   useGetReplies,
   useCreatePost,
   useDeletePost,
-  type CreatePostMutationBody,
 } from '@/lib/api/generated/endpoints/posts/posts';
 
 export const useReplies = (postId: string, enabled = true) => {

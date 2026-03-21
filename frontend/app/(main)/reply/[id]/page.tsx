@@ -1,12 +1,11 @@
 'use client';
 
-import { useEffect, useState, use } from 'react';
+import { useState, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { useCurrentUser } from '@/hooks/use-user';
 import { useReplyDetail } from '@/hooks/use-reply-detail';
 import { useReplies } from '@/hooks/use-replies-for-reply';
-import { Reply } from '@/types';
 import { ContentCard } from '@/components/common/ContentCard';
 import { ActionBar } from '@/components/common/ActionBar';
 import ReplyCard from '@/components/reply/ReplyCard';
@@ -89,10 +88,6 @@ export default function ReplyDetailPage({ params }: ReplyDetailPageProps) {
 
   const handleDeleteReply = async (replyId: string) => {
     deleteReply(replyId);
-  };
-
-  const handleLikeToggle = () => {
-    // This will be handled by the ActionBar component
   };
 
   const handleReply = () => {

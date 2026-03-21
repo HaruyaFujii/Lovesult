@@ -76,8 +76,8 @@ const getInitialNotifications = (): Notification[] => {
 };
 
 export default function NotificationsPage() {
-  const { user } = useAuth();
-  const [notifications, setNotifications] = useState<Notification[]>(getInitialNotifications);
+  const {} = useAuth();
+  const [notifications] = useState<Notification[]>(getInitialNotifications);
 
   const handleRefresh = async () => {
     // 実際の実装では通知データを再取得

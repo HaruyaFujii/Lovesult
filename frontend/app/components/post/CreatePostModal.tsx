@@ -21,19 +21,21 @@ export function CreatePostModal({ isOpen, onClose }: Props) {
   const { data: currentUser, isLoading: userLoading } = useCurrentUser();
 
   // UserResponseをUserに変換
-  const userForPost: User | undefined = currentUser ? {
-    id: currentUser.id,
-    email: currentUser.email || '',
-    nickname: currentUser.nickname,
-    name: currentUser.nickname,  // nameフィールドがない場合はnicknameを使用
-    avatar_url: currentUser.avatar_url || undefined,
-    status: currentUser.status,
-    gender: currentUser.gender,
-    age_range: currentUser.age_range,
-    bio: currentUser.bio || undefined,
-    created_at: currentUser.created_at || new Date().toISOString(),
-    updated_at: currentUser.updated_at || undefined
-  } : undefined;
+  const userForPost: User | undefined = currentUser
+    ? {
+        id: currentUser.id,
+        email: currentUser.email || '',
+        nickname: currentUser.nickname,
+        name: currentUser.nickname, // nameフィールドがない場合はnicknameを使用
+        avatar_url: currentUser.avatar_url || undefined,
+        status: currentUser.status,
+        gender: currentUser.gender,
+        age_range: currentUser.age_range,
+        bio: currentUser.bio || undefined,
+        created_at: currentUser.created_at || new Date().toISOString(),
+        updated_at: currentUser.updated_at || undefined,
+      }
+    : undefined;
 
   const createPost = useCreatePost(userForPost);
   const [content, setContent] = useState('');

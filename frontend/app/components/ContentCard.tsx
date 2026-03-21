@@ -87,7 +87,7 @@ export function ContentCard({
       await onReply(replyContent.trim(), data.id);
       setReplyContent('');
       setIsReplyFormOpen(false);
-    } catch (error) {
+    } catch {
       // サイレントエラー
     } finally {
       setIsSubmitting(false);

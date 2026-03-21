@@ -65,7 +65,9 @@ async def get_conversation(
             conversation_id=conversation_id,
         )
     except PermissionError as err:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not a participant") from err
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not a participant"
+        ) from err
 
 
 @router.get("/{conversation_id}/messages", response_model=MessageListResponse)
@@ -86,7 +88,9 @@ async def get_messages(
             limit=limit,
         )
     except PermissionError as err:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not a participant") from err
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not a participant"
+        ) from err
 
 
 @router.post(
@@ -109,7 +113,9 @@ async def send_message(
             data=data,
         )
     except PermissionError as err:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not a participant") from err
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not a participant"
+        ) from err
     # TODO: 課金チェック追加時
     # except PaymentRequired as e:
     #     raise HTTPException(status_code=status.HTTP_402_PAYMENT_REQUIRED, detail=str(e))

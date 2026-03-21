@@ -11,9 +11,12 @@ export const useFollow = () => {
 
   const followMutation = useMutation({
     mutationFn: async ({ userId }: { userId: string }) => {
-      const response = await customInstance<{ data: FollowResponse }>(`/api/v1/users/${userId}/follow`, {
-        method: 'POST',
-      });
+      const response = await customInstance<{ data: FollowResponse }>(
+        `/api/v1/users/${userId}/follow`,
+        {
+          method: 'POST',
+        }
+      );
       return response.data;
     },
     onSuccess: (_, variables) => {
@@ -37,9 +40,12 @@ export const useFollow = () => {
 
   const unfollowMutation = useMutation({
     mutationFn: async ({ userId }: { userId: string }) => {
-      const response = await customInstance<{ data: FollowResponse }>(`/api/v1/users/${userId}/follow`, {
-        method: 'DELETE',
-      });
+      const response = await customInstance<{ data: FollowResponse }>(
+        `/api/v1/users/${userId}/follow`,
+        {
+          method: 'DELETE',
+        }
+      );
       return response.data;
     },
     onSuccess: (_, variables) => {

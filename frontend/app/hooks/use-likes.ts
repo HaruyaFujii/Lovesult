@@ -11,9 +11,12 @@ export const useLikePost = () => {
 
   return useMutation({
     mutationFn: async ({ postId }: { postId: string }) => {
-      const response = await customInstance<{ data: LikeResponse }>(`/api/v1/posts/${postId}/like`, {
-        method: 'POST',
-      });
+      const response = await customInstance<{ data: LikeResponse }>(
+        `/api/v1/posts/${postId}/like`,
+        {
+          method: 'POST',
+        }
+      );
       return response.data;
     },
     onSuccess: () => {
@@ -27,9 +30,12 @@ export const useUnlikePost = () => {
 
   return useMutation({
     mutationFn: async ({ postId }: { postId: string }) => {
-      const response = await customInstance<{ data: LikeResponse }>(`/api/v1/posts/${postId}/like`, {
-        method: 'DELETE',
-      });
+      const response = await customInstance<{ data: LikeResponse }>(
+        `/api/v1/posts/${postId}/like`,
+        {
+          method: 'DELETE',
+        }
+      );
       return response.data;
     },
     onSuccess: () => {
@@ -43,9 +49,12 @@ export const useLikeReply = () => {
 
   return useMutation({
     mutationFn: async ({ replyId }: { replyId: string }) => {
-      const response = await customInstance<{ data: LikeResponse }>(`/api/v1/posts/${replyId}/like`, {
-        method: 'POST',
-      });
+      const response = await customInstance<{ data: LikeResponse }>(
+        `/api/v1/posts/${replyId}/like`,
+        {
+          method: 'POST',
+        }
+      );
       return response.data;
     },
     onSuccess: () => {
@@ -59,9 +68,12 @@ export const useUnlikeReply = () => {
 
   return useMutation({
     mutationFn: async ({ replyId }: { replyId: string }) => {
-      const response = await customInstance<{ data: LikeResponse }>(`/api/v1/posts/${replyId}/like`, {
-        method: 'DELETE',
-      });
+      const response = await customInstance<{ data: LikeResponse }>(
+        `/api/v1/posts/${replyId}/like`,
+        {
+          method: 'DELETE',
+        }
+      );
       return response.data;
     },
     onSuccess: () => {

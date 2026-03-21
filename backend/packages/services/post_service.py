@@ -84,7 +84,9 @@ class PostService:
         )
         return result.scalar_one()
 
-    async def get_post(self, post_id: UUID, current_user_id: UUID | None = None) -> dict[str, Any] | None:
+    async def get_post(
+        self, post_id: UUID, current_user_id: UUID | None = None
+    ) -> dict[str, Any] | None:
         post = await self.repository.get_by_id(post_id)
         if not post:
             return None

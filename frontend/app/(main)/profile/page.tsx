@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useCurrentUser } from '@/hooks/use-user';
 import { useMyPersonalityResult } from '@/hooks/use-personality';
@@ -24,7 +24,6 @@ import { PullToRefreshContainer } from '@/components/layout/PullToRefreshContain
 export default function ProfilePage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
-  const [currentAvatarUrl, setCurrentAvatarUrl] = useState<string>('');
 
   const { data: profileData, isLoading, error } = useCurrentUser(!!user && !authLoading);
   const { data: personalityResult } = useMyPersonalityResult();
