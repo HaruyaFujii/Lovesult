@@ -6,14 +6,24 @@ import { getAuthHeader } from '../auth/token';
 import { createClient } from '../supabase/client';
 
 // Get API base URL from environment variable
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
+const getApiBaseUrl = () => {
+  // Next.jsの環境変数はビルド時に置換される
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
+
+  if (typeof window !== 'undefined') {
+    console.log('[API Client] Using API URL:', apiUrl || 'EMPTY (will use relative URLs)');
+  }
+
+  return apiUrl;
+};
 
 /**
  * Custom fetch wrapper that adds base URL and authentication
  */
 export async function apiFetch(url: string, options?: RequestInit): Promise<Response> {
   // Build full URL
-  const fullUrl = API_BASE_URL ? `${API_BASE_URL}${url}` : url;
+  const apiBaseUrl = getApiBaseUrl();
+  const fullUrl = apiBaseUrl ? `${apiBaseUrl}${url}` : url;
 
   // Get auth headers
   const authHeaders = await getAuthHeader();
@@ -54,12 +64,16 @@ if (typeof window !== 'undefined') {
   window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = typeof input === 'string' ? input : input.toString();
 
-    // If it's an API call (starts with /api), use our custom fetch
+    // If it's an API call (starts with /api/), use our custom fetch
     if (url.startsWith('/api/')) {
+      console.log('[API Client] Intercepting API call to:', url);
       return apiFetch(url, init);
     }
 
     // Otherwise use original fetch
     return originalFetch(input, init);
   };
+
+  // Initialize and log configuration
+  console.log('[API Client] Initialized with base URL:', getApiBaseUrl() || 'NONE (using relative URLs)');
 }
