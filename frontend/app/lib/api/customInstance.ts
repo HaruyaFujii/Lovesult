@@ -2,7 +2,7 @@ import { getAuthHeader } from '../auth/token';
 
 export type ErrorType<T = unknown> = T;
 
-const customInstance = async <T>(
+export const customInstance = async <T>(
   url: string,
   options?: RequestInit & {
     params?: Record<string, string | number>;
@@ -113,5 +113,4 @@ const customInstance = async <T>(
   } as T;
 };
 
-export { customInstance };
 export default customInstance;

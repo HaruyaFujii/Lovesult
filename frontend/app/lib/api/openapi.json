@@ -8,9 +8,7 @@
   "paths": {
     "/api/v1/health": {
       "get": {
-        "tags": [
-          "health"
-        ],
+        "tags": ["health"],
         "summary": "Health Check",
         "operationId": "healthCheck",
         "responses": {
@@ -33,9 +31,7 @@
     },
     "/api/v1/users": {
       "get": {
-        "tags": [
-          "users"
-        ],
+        "tags": ["users"],
         "summary": "Get Users",
         "description": "全ユーザーを取得",
         "operationId": "getUsers",
@@ -106,9 +102,7 @@
     },
     "/api/v1/users/me": {
       "get": {
-        "tags": [
-          "users"
-        ],
+        "tags": ["users"],
         "summary": "Get Current User",
         "operationId": "getCurrentUser",
         "responses": {
@@ -130,9 +124,7 @@
         ]
       },
       "put": {
-        "tags": [
-          "users"
-        ],
+        "tags": ["users"],
         "summary": "Update Current User",
         "operationId": "updateCurrentUser",
         "requestBody": {
@@ -176,9 +168,7 @@
     },
     "/api/v1/users/{user_id}": {
       "get": {
-        "tags": [
-          "users"
-        ],
+        "tags": ["users"],
         "summary": "Get User",
         "operationId": "getUser",
         "parameters": [
@@ -219,9 +209,7 @@
     },
     "/api/v1/users/{user_id}/posts": {
       "get": {
-        "tags": [
-          "users"
-        ],
+        "tags": ["users"],
         "summary": "Get User Posts",
         "operationId": "getUserPosts",
         "security": [
@@ -299,9 +287,7 @@
     },
     "/api/v1/users/me/avatar": {
       "post": {
-        "tags": [
-          "users"
-        ],
+        "tags": ["users"],
         "summary": "Upload User Avatar",
         "description": "ユーザーのアバター画像をアップロードする",
         "operationId": "uploadUserAvatar",
@@ -346,9 +332,7 @@
     },
     "/api/v1/posts": {
       "get": {
-        "tags": [
-          "posts"
-        ],
+        "tags": ["posts"],
         "summary": "Get Posts",
         "operationId": "getPosts",
         "security": [
@@ -450,9 +434,7 @@
         }
       },
       "post": {
-        "tags": [
-          "posts"
-        ],
+        "tags": ["posts"],
         "summary": "Create Post",
         "operationId": "createPost",
         "security": [
@@ -496,9 +478,7 @@
     },
     "/api/v1/posts/{post_id}": {
       "get": {
-        "tags": [
-          "posts"
-        ],
+        "tags": ["posts"],
         "summary": "Get Post",
         "operationId": "getPost",
         "security": [
@@ -542,9 +522,7 @@
         }
       },
       "put": {
-        "tags": [
-          "posts"
-        ],
+        "tags": ["posts"],
         "summary": "Update Post",
         "operationId": "updatePost",
         "security": [
@@ -598,9 +576,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "posts"
-        ],
+        "tags": ["posts"],
         "summary": "Delete Post",
         "operationId": "deletePost",
         "security": [
@@ -639,9 +615,7 @@
     },
     "/api/v1/posts/{post_id}/replies": {
       "get": {
-        "tags": [
-          "posts"
-        ],
+        "tags": ["posts"],
         "summary": "Get Replies",
         "description": "Get replies for a specific post",
         "operationId": "getReplies",
@@ -688,9 +662,7 @@
     },
     "/api/v1/users/{user_id}/follow": {
       "post": {
-        "tags": [
-          "follows"
-        ],
+        "tags": ["follows"],
         "summary": "Follow User",
         "operationId": "followUser",
         "security": [
@@ -738,9 +710,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "follows"
-        ],
+        "tags": ["follows"],
         "summary": "Unfollow User",
         "operationId": "unfollowUser",
         "security": [
@@ -790,9 +760,7 @@
     },
     "/api/v1/users/{user_id}/follow-status": {
       "get": {
-        "tags": [
-          "follows"
-        ],
+        "tags": ["follows"],
         "summary": "Get Follow Status",
         "operationId": "getFollowStatus",
         "security": [
@@ -838,9 +806,7 @@
     },
     "/api/v1/users/{user_id}/followers": {
       "get": {
-        "tags": [
-          "follows"
-        ],
+        "tags": ["follows"],
         "summary": "Get Followers",
         "operationId": "getFollowers",
         "parameters": [
@@ -913,9 +879,7 @@
     },
     "/api/v1/users/{user_id}/following": {
       "get": {
-        "tags": [
-          "follows"
-        ],
+        "tags": ["follows"],
         "summary": "Get Following",
         "operationId": "getFollowing",
         "parameters": [
@@ -988,9 +952,7 @@
     },
     "/api/v1/posts/{post_id}/like": {
       "post": {
-        "tags": [
-          "likes"
-        ],
+        "tags": ["likes"],
         "summary": "Like Post",
         "operationId": "likePost",
         "security": [
@@ -1038,9 +1000,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "likes"
-        ],
+        "tags": ["likes"],
         "summary": "Unlike Post",
         "operationId": "unlikePost",
         "security": [
@@ -1090,9 +1050,7 @@
     },
     "/api/v1/replies/{reply_id}/like": {
       "post": {
-        "tags": [
-          "likes"
-        ],
+        "tags": ["likes"],
         "summary": "Like Reply",
         "operationId": "likeReply",
         "security": [
@@ -1140,9 +1098,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "likes"
-        ],
+        "tags": ["likes"],
         "summary": "Unlike Reply",
         "operationId": "unlikeReply",
         "security": [
@@ -1192,9 +1148,7 @@
     },
     "/api/v1/notifications": {
       "get": {
-        "tags": [
-          "notifications"
-        ],
+        "tags": ["notifications"],
         "summary": "Get Notifications",
         "operationId": "getNotifications",
         "security": [
@@ -1262,9 +1216,7 @@
     },
     "/api/v1/notifications/unread-count": {
       "get": {
-        "tags": [
-          "notifications"
-        ],
+        "tags": ["notifications"],
         "summary": "Get Unread Count",
         "operationId": "getUnreadNotificationCount",
         "responses": {
@@ -1288,9 +1240,7 @@
     },
     "/api/v1/notifications/{notification_id}/read": {
       "put": {
-        "tags": [
-          "notifications"
-        ],
+        "tags": ["notifications"],
         "summary": "Mark Notification As Read",
         "operationId": "markNotificationAsRead",
         "security": [
@@ -1340,9 +1290,7 @@
     },
     "/api/v1/notifications/read-all": {
       "put": {
-        "tags": [
-          "notifications"
-        ],
+        "tags": ["notifications"],
         "summary": "Mark All Notifications As Read",
         "operationId": "markAllNotificationsAsRead",
         "responses": {
@@ -1370,9 +1318,7 @@
     },
     "/api/v1/reports": {
       "post": {
-        "tags": [
-          "reports"
-        ],
+        "tags": ["reports"],
         "summary": "Create Report",
         "description": "コンテンツを報告する",
         "operationId": "createReport",
@@ -1417,9 +1363,7 @@
     },
     "/api/v1/reports/{report_id}": {
       "get": {
-        "tags": [
-          "reports"
-        ],
+        "tags": ["reports"],
         "summary": "Get Report",
         "description": "報告の詳細を取得する",
         "operationId": "getReport",
@@ -1466,9 +1410,7 @@
     },
     "/api/v1/reports/admin/pending": {
       "get": {
-        "tags": [
-          "reports"
-        ],
+        "tags": ["reports"],
         "summary": "Get Pending Reports",
         "description": "保留中の報告一覧を取得する（管理者用）",
         "operationId": "getPendingReports",
@@ -1523,9 +1465,7 @@
     },
     "/api/v1/search/posts": {
       "get": {
-        "tags": [
-          "search"
-        ],
+        "tags": ["search"],
         "summary": "Search Posts",
         "description": "投稿を検索する\n\n- **q**: 検索クエリ（投稿内容を検索）\n- **status**: ステータスフィルター (in_love, heartbroken, seeking)\n- **age_range**: 年齢範囲フィルター (teens, twenties, thirties, forties_plus)\n- **cursor**: ページネーション用カーソル\n- **limit**: 取得件数（最大100）",
         "operationId": "search_posts_api_v1_search_posts_get",
@@ -1647,9 +1587,7 @@
     },
     "/api/v1/search/users": {
       "get": {
-        "tags": [
-          "search"
-        ],
+        "tags": ["search"],
         "summary": "Search Users",
         "description": "ユーザーを検索する\n\n- **q**: 検索クエリ（ニックネームとbioを検索）\n- **status**: ステータスフィルター (in_love, heartbroken, seeking)\n- **age_range**: 年齢範囲フィルター (teens, twenties, thirties, forties_plus)\n- **cursor**: ページネーション用カーソル\n- **limit**: 取得件数（最大100）",
         "operationId": "search_users_api_v1_search_users_get",
@@ -1771,9 +1709,7 @@
     },
     "/api/v1/api/v1/account": {
       "delete": {
-        "tags": [
-          "account"
-        ],
+        "tags": ["account"],
         "summary": "Delete Account",
         "description": "アカウントを削除する\n\n確認のため、confirmationフィールドに「DELETE MY ACCOUNT」という文字列を送信する必要があります。\nこの操作は取り消すことができません。",
         "operationId": "delete_account_api_v1_api_v1_account_delete",
@@ -1818,9 +1754,7 @@
     },
     "/api/v1/api/v1/account/summary": {
       "get": {
-        "tags": [
-          "account"
-        ],
+        "tags": ["account"],
         "summary": "Get Account Summary",
         "description": "アカウントのデータサマリーを取得する\n\n削除前の確認用に、ユーザーのデータ件数を返します。",
         "operationId": "get_account_summary_api_v1_api_v1_account_summary_get",
@@ -1847,9 +1781,7 @@
     },
     "/api/v1/conversations": {
       "get": {
-        "tags": [
-          "dm"
-        ],
+        "tags": ["dm"],
         "summary": "Get Conversations",
         "description": "会話一覧を取得",
         "operationId": "get_conversations_api_v1_conversations_get",
@@ -1912,9 +1844,7 @@
         }
       },
       "post": {
-        "tags": [
-          "dm"
-        ],
+        "tags": ["dm"],
         "summary": "Create Conversation",
         "description": "会話を作成（または既存を取得）",
         "operationId": "create_conversation_api_v1_conversations_post",
@@ -1959,9 +1889,7 @@
     },
     "/api/v1/conversations/{conversation_id}": {
       "get": {
-        "tags": [
-          "dm"
-        ],
+        "tags": ["dm"],
         "summary": "Get Conversation",
         "description": "会話詳細を取得",
         "operationId": "get_conversation_api_v1_conversations__conversation_id__get",
@@ -2008,9 +1936,7 @@
     },
     "/api/v1/conversations/{conversation_id}/messages": {
       "get": {
-        "tags": [
-          "dm"
-        ],
+        "tags": ["dm"],
         "summary": "Get Messages",
         "description": "メッセージ一覧を取得",
         "operationId": "get_messages_api_v1_conversations__conversation_id__messages_get",
@@ -2083,9 +2009,7 @@
         }
       },
       "post": {
-        "tags": [
-          "dm"
-        ],
+        "tags": ["dm"],
         "summary": "Send Message",
         "description": "メッセージを送信",
         "operationId": "send_message_api_v1_conversations__conversation_id__messages_post",
@@ -2142,9 +2066,7 @@
     },
     "/api/v1/conversations/{conversation_id}/read": {
       "put": {
-        "tags": [
-          "dm"
-        ],
+        "tags": ["dm"],
         "summary": "Mark As Read",
         "description": "既読にする",
         "operationId": "mark_as_read_api_v1_conversations__conversation_id__read_put",
@@ -2184,9 +2106,7 @@
     },
     "/api/v1/personality/questions": {
       "get": {
-        "tags": [
-          "personality"
-        ],
+        "tags": ["personality"],
         "summary": "Get Questions",
         "description": "診断質問を取得",
         "operationId": "get_questions_api_v1_personality_questions_get",
@@ -2206,9 +2126,7 @@
     },
     "/api/v1/personality/submit": {
       "post": {
-        "tags": [
-          "personality"
-        ],
+        "tags": ["personality"],
         "summary": "Submit Answers",
         "description": "診断回答を送信",
         "operationId": "submit_answers_api_v1_personality_submit_post",
@@ -2253,9 +2171,7 @@
     },
     "/api/v1/personality/me": {
       "get": {
-        "tags": [
-          "personality"
-        ],
+        "tags": ["personality"],
         "summary": "Get My Result",
         "description": "自分の診断結果を取得",
         "operationId": "get_my_result_api_v1_personality_me_get",
@@ -2280,9 +2196,7 @@
     },
     "/api/v1/personality/users/{user_id}": {
       "get": {
-        "tags": [
-          "personality"
-        ],
+        "tags": ["personality"],
         "summary": "Get User Result",
         "description": "指定ユーザーの診断結果を取得",
         "operationId": "get_user_result_api_v1_personality_users__user_id__get",
@@ -2332,9 +2246,7 @@
     },
     "/api/v1/personality/recommended-users": {
       "get": {
-        "tags": [
-          "personality"
-        ],
+        "tags": ["personality"],
         "summary": "Get Recommended Users",
         "description": "おすすめユーザーを取得",
         "operationId": "get_recommended_users_api_v1_personality_recommended_users_get",
@@ -2392,9 +2304,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "confirmation"
-        ],
+        "required": ["confirmation"],
         "title": "AccountDeletionRequest",
         "description": "アカウント削除リクエスト"
       },
@@ -2410,22 +2320,13 @@
           }
         },
         "type": "object",
-        "required": [
-          "success",
-          "message"
-        ],
+        "required": ["success", "message"],
         "title": "AccountDeletionResponse",
         "description": "アカウント削除レスポンス"
       },
       "AgeRange": {
         "type": "string",
-        "enum": [
-          "TEENS",
-          "TWENTIES",
-          "THIRTIES",
-          "FORTIES",
-          "FIFTIES_PLUS"
-        ],
+        "enum": ["TEENS", "TWENTIES", "THIRTIES", "FORTIES", "FIFTIES_PLUS"],
         "title": "AgeRange"
       },
       "AnswerSubmit": {
@@ -2441,9 +2342,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "answers"
-        ],
+        "required": ["answers"],
         "title": "AnswerSubmit"
       },
       "Body_uploadUserAvatar": {
@@ -2455,9 +2354,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "file"
-        ],
+        "required": ["file"],
         "title": "Body_uploadUserAvatar"
       },
       "ConversationCreate": {
@@ -2469,9 +2366,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "partner_id"
-        ],
+        "required": ["partner_id"],
         "title": "ConversationCreate"
       },
       "ConversationDetailResponse": {
@@ -2498,10 +2393,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "id",
-          "created_at"
-        ],
+        "required": ["id", "created_at"],
         "title": "ConversationDetailResponse"
       },
       "ConversationListResponse": {
@@ -2526,9 +2418,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "conversations"
-        ],
+        "required": ["conversations"],
         "title": "ConversationListResponse"
       },
       "ConversationResponse": {
@@ -2569,11 +2459,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "id",
-          "unread_count",
-          "updated_at"
-        ],
+        "required": ["id", "unread_count", "updated_at"],
         "title": "ConversationResponse"
       },
       "FollowListResponse": {
@@ -2598,9 +2484,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "users"
-        ],
+        "required": ["users"],
         "title": "FollowListResponse"
       },
       "FollowStatusResponse": {
@@ -2615,20 +2499,12 @@
           }
         },
         "type": "object",
-        "required": [
-          "is_following",
-          "is_followed_by"
-        ],
+        "required": ["is_following", "is_followed_by"],
         "title": "FollowStatusResponse"
       },
       "Gender": {
         "type": "string",
-        "enum": [
-          "MALE",
-          "FEMALE",
-          "OTHER",
-          "PRIVATE"
-        ],
+        "enum": ["MALE", "FEMALE", "OTHER", "PRIVATE"],
         "title": "Gender"
       },
       "HTTPValidationError": {
@@ -2654,9 +2530,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "content"
-        ],
+        "required": ["content"],
         "title": "MessageCreate"
       },
       "MessageListResponse": {
@@ -2681,9 +2555,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "messages"
-        ],
+        "required": ["messages"],
         "title": "MessageListResponse"
       },
       "MessageResponse": {
@@ -2723,13 +2595,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "id",
-          "sender_id",
-          "content",
-          "created_at",
-          "is_mine"
-        ],
+        "required": ["id", "sender_id", "content", "created_at", "is_mine"],
         "title": "MessageResponse"
       },
       "NotificationListResponse": {
@@ -2754,9 +2620,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "notifications"
-        ],
+        "required": ["notifications"],
         "title": "NotificationListResponse"
       },
       "NotificationResponse": {
@@ -2813,12 +2677,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "id",
-          "type",
-          "is_read",
-          "created_at"
-        ],
+        "required": ["id", "type", "is_read", "created_at"],
         "title": "NotificationResponse"
       },
       "PersonalityResultResponse": {
@@ -2850,11 +2709,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "primary_type",
-          "scores",
-          "created_at"
-        ],
+        "required": ["primary_type", "scores", "created_at"],
         "title": "PersonalityResultResponse"
       },
       "PersonalityType": {
@@ -2888,14 +2743,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "key",
-          "name",
-          "description",
-          "emoji",
-          "color",
-          "compatible_with"
-        ],
+        "required": ["key", "name", "description", "emoji", "color", "compatible_with"],
         "title": "PersonalityType"
       },
       "PostCreate": {
@@ -2918,9 +2766,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "content"
-        ],
+        "required": ["content"],
         "title": "PostCreate"
       },
       "PostResponse": {
@@ -3057,9 +2903,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "posts"
-        ],
+        "required": ["posts"],
         "title": "PostSearchResponse",
         "description": "投稿検索レスポンス"
       },
@@ -3071,9 +2915,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "content"
-        ],
+        "required": ["content"],
         "title": "PostUpdate"
       },
       "Question": {
@@ -3095,11 +2937,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "id",
-          "text",
-          "options"
-        ],
+        "required": ["id", "text", "options"],
         "title": "Question"
       },
       "QuestionOption": {
@@ -3117,10 +2955,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "text",
-          "scores"
-        ],
+        "required": ["text", "scores"],
         "title": "QuestionOption"
       },
       "QuestionsResponse": {
@@ -3134,9 +2969,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "questions"
-        ],
+        "required": ["questions"],
         "title": "QuestionsResponse"
       },
       "RecommendedUser": {
@@ -3195,9 +3028,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "users"
-        ],
+        "required": ["users"],
         "title": "RecommendedUsersResponse"
       },
       "RepliesResponse": {
@@ -3207,9 +3038,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "replies"
-        ],
+        "required": ["replies"],
         "title": "RepliesResponse"
       },
       "ReportCreate": {
@@ -3235,12 +3064,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "target_type",
-          "target_id",
-          "report_type",
-          "reason"
-        ],
+        "required": ["target_type", "target_id", "report_type", "reason"],
         "title": "ReportCreate",
         "description": "報告作成用スキーマ"
       },
@@ -3263,11 +3087,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "reports",
-          "total",
-          "has_more"
-        ],
+        "required": ["reports", "total", "has_more"],
         "title": "ReportListResponse",
         "description": "報告リストレスポンススキーマ"
       },
@@ -3390,23 +3210,13 @@
       },
       "ReportStatus": {
         "type": "string",
-        "enum": [
-          "pending",
-          "reviewed",
-          "resolved",
-          "dismissed"
-        ],
+        "enum": ["pending", "reviewed", "resolved", "dismissed"],
         "title": "ReportStatus",
         "description": "報告ステータスの列挙型"
       },
       "ReportType": {
         "type": "string",
-        "enum": [
-          "spam",
-          "harassment",
-          "inappropriate",
-          "other"
-        ],
+        "enum": ["spam", "harassment", "inappropriate", "other"],
         "title": "ReportType",
         "description": "報告タイプの列挙型"
       },
@@ -3428,9 +3238,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "posts"
-        ],
+        "required": ["posts"],
         "title": "TimelineResponse"
       },
       "UnreadCountResponse": {
@@ -3441,9 +3249,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "unread_count"
-        ],
+        "required": ["unread_count"],
         "title": "UnreadCountResponse"
       },
       "UserBrief": {
@@ -3470,10 +3276,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "id",
-          "nickname"
-        ],
+        "required": ["id", "nickname"],
         "title": "UserBrief"
       },
       "UserResponse": {
@@ -3594,19 +3397,13 @@
           }
         },
         "type": "object",
-        "required": [
-          "users"
-        ],
+        "required": ["users"],
         "title": "UserSearchResponse",
         "description": "ユーザー検索レスポンス"
       },
       "UserStatus": {
         "type": "string",
-        "enum": [
-          "IN_LOVE",
-          "HEARTBROKEN",
-          "SEEKING"
-        ],
+        "enum": ["IN_LOVE", "HEARTBROKEN", "SEEKING"],
         "title": "UserStatus"
       },
       "UserUpdate": {
@@ -3711,11 +3508,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "loc",
-          "msg",
-          "type"
-        ],
+        "required": ["loc", "msg", "type"],
         "title": "ValidationError"
       }
     },
