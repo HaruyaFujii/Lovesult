@@ -27,6 +27,7 @@ async def get_posts(
     # キャッシュから取得を試みる
     cached_result = await cache.get(cache_key)
     if cached_result:
+        # キャッシュから取得したデータをTimelineResponseに変換
         return TimelineResponse(**cached_result)
 
     # キャッシュにない場合はDBから取得
@@ -41,7 +42,8 @@ async def get_posts(
 
     # 結果をキャッシュに保存（60秒）
     result = TimelineResponse(posts=posts, next_cursor=next_cursor)
-    await cache.set(cache_key, result.dict(), ttl=60)
+    # UUIDを文字列に変換してJSONシリアライズ可能にする
+    await cache.set(cache_key, result.model_dump(mode="json"), ttl=60)
 
     return result
 
