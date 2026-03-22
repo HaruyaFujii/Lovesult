@@ -17,7 +17,7 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
         defaultOptions: {
           queries: {
             staleTime: 5 * 60 * 1000, // 5分間データを新鮮とみなす
-            cacheTime: 10 * 60 * 1000, // 10分間キャッシュを保持
+            gcTime: 10 * 60 * 1000, // 10分間キャッシュを保持
             refetchOnWindowFocus: false,
             retry: 1, // Reduce retries for faster error feedback
             retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // 指数バックオフ

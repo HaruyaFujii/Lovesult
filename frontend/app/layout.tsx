@@ -19,18 +19,19 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: 'LoveTalk - 恋愛相談SNS',
   description: '恋愛相談を聞きたい人と聞いてほしい人をつなげるSNS',
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
-  },
-  themeColor: '#ec4899',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
     title: 'LoveTalk',
   },
+};
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  themeColor: '#ec4899',
 };
 
 export default function RootLayout({

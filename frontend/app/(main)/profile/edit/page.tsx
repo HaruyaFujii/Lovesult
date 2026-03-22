@@ -73,19 +73,28 @@ export default function ProfileEditPage() {
       let errorMessage = 'プロフィールの更新に失敗しました';
 
       // エラーの構造を詳しく確認してメッセージを抽出
-      if (error?.data?.detail) {
+      const err = error as {
+        data?: { detail?: string | Array<{ msg?: string }> };
+        message?: string | Array<{ msg?: string } | string>;
+      };
+      if (err?.data?.detail) {
         // customInstanceのエラー形式
-        if (Array.isArray(error.data.detail)) {
+        if (Array.isArray(err.data.detail)) {
           // バリデーションエラーの場合、最初のエラーメッセージを使用
-          errorMessage = error.data.detail[0]?.msg || errorMessage;
+          errorMessage = err.data.detail[0]?.msg || errorMessage;
         } else {
-          errorMessage = error.data.detail;
+          errorMessage = err.data.detail;
         }
-      } else if (error?.message) {
-        if (Array.isArray(error.message)) {
-          errorMessage = error.message[0]?.msg || error.message[0] || errorMessage;
+      } else if (err?.message) {
+        if (Array.isArray(err.message)) {
+          const firstItem = err.message[0];
+          if (typeof firstItem === 'string') {
+            errorMessage = firstItem;
+          } else if (firstItem?.msg) {
+            errorMessage = firstItem.msg;
+          }
         } else {
-          errorMessage = error.message;
+          errorMessage = err.message;
         }
       } else if (typeof error === 'string') {
         errorMessage = error;

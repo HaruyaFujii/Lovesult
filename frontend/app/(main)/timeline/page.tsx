@@ -130,28 +130,20 @@ export default function TimelinePage() {
           {/* 投稿リスト */}
           <div className="bg-white">
             {posts
-              .filter(
-                (post: { id: string }, index: number, arr: Array<{ id: string }>) =>
-                  arr.findIndex((p) => p.id === post.id) === index
-              )
-              .map(
-                (
-                  post: { id: string; user?: { id: string }; _optimistic?: boolean },
-                  index: number
-                ) => {
-                  const isMyPost = currentUser && post.user?.id === currentUser.id;
-                  const isOptimistic = post._optimistic;
-                  return (
-                    <div key={post.id} className={index > 0 ? 'border-t border-gray-200' : ''}>
-                      <PostCard
-                        post={post}
-                        showActions={Boolean(isMyPost && !isOptimistic)}
-                        onDelete={() => handleDeletePost(post.id)}
-                      />
-                    </div>
-                  );
-                }
-              )}
+              .filter((post, index, arr) => arr.findIndex((p) => p.id === post.id) === index)
+              .map((post, index) => {
+                const isMyPost = currentUser && post.user?.id === currentUser.id;
+                const isOptimistic = (post as any)._optimistic;
+                return (
+                  <div key={post.id} className={index > 0 ? 'border-t border-gray-200' : ''}>
+                    <PostCard
+                      post={post}
+                      showActions={Boolean(isMyPost && !isOptimistic)}
+                      onDelete={() => handleDeletePost(post.id)}
+                    />
+                  </div>
+                );
+              })}
 
             {loading && (
               <div className="text-center py-12 border-t border-gray-200">
