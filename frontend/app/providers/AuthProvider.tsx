@@ -8,6 +8,7 @@ import { useQueryClient } from '@tanstack/react-query';
 type AuthContextType = {
   user: User | null;
   loading: boolean;
+  session: any | null;
   getAccessToken: () => Promise<string | null>;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string) => Promise<void>;
@@ -18,6 +19,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [supabase] = useState(() => createClient());
   const queryClient = useQueryClient();
@@ -25,34 +27,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let isMounted = true;
 
-    const getUser = async () => {
+    // 初回のセッション取得
+    const initializeAuth = async () => {
       try {
         const {
-          data: { user },
-        } = await supabase.auth.getUser();
+          data: { session: currentSession },
+        } = await supabase.auth.getSession();
+
         if (isMounted) {
-          setUser(user);
+          setSession(currentSession);
+          setUser(currentSession?.user ?? null);
           setLoading(false);
         }
       } catch (error) {
-        // AbortErrorは一般的な現象なので、コンソールログを制限
         if (error instanceof Error && error.name !== 'AbortError') {
-          console.error('Auth error:', error);
+          console.error('Auth initialization error:', error);
         }
         if (isMounted) {
+          setSession(null);
           setUser(null);
           setLoading(false);
         }
       }
     };
 
-    getUser();
+    initializeAuth();
 
+    // 認証状態の変更を監視
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
+    } = supabase.auth.onAuthStateChange((event, newSession) => {
       if (isMounted) {
-        const newUser = session?.user ?? null;
+        const newUser = newSession?.user ?? null;
         const currentUserId = user?.id;
         const newUserId = newUser?.id;
 
@@ -61,7 +67,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           queryClient.clear();
         }
 
+        setSession(newSession);
         setUser(newUser);
+
+        // ログアウト時はloadingをfalseに
+        if (event === 'SIGNED_OUT') {
+          setLoading(false);
+        }
       }
     });
 
@@ -69,7 +81,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isMounted = false;
       subscription.unsubscribe();
     };
-  }, [supabase, queryClient, user?.id]);
+  }, [supabase, queryClient]);
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({
@@ -95,17 +107,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const getAccessToken = async (): Promise<string | null> => {
+    // キャッシュされたセッションから直接トークンを取得
+    if (session) {
+      return session.access_token || null;
+    }
+
+    // セッションがない場合のみ、新たに取得を試みる
     try {
       const {
-        data: { session },
+        data: { session: newSession },
         error,
       } = await supabase.auth.getSession();
       if (error) {
         console.error('Token retrieval error:', error);
         return null;
       }
-      const token = session?.access_token || null;
-      return token;
+      if (newSession) {
+        setSession(newSession);
+      }
+      return newSession?.access_token || null;
     } catch (error) {
       console.error('Failed to get access token:', error);
       return null;
@@ -117,6 +137,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       value={{
         user,
         loading,
+        session,
         getAccessToken,
         signIn,
         signUp,

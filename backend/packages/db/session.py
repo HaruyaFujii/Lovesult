@@ -11,10 +11,16 @@ engine = create_async_engine(
     settings.database_url,
     echo=False,  # プロダクションでは無効化
     future=True,
-    pool_pre_ping=True,
-    pool_recycle=300,
+    pool_size=20,  # 接続プールサイズを増やす
+    max_overflow=40,  # オーバーフロー接続を増やす
+    pool_pre_ping=True,  # 接続の健全性チェック
+    pool_recycle=3600,  # 1時間で接続をリサイクル
     connect_args={
         "statement_cache_size": 0,  # Transaction pooler対応
+        "prepared_statement_cache_size": 0,
+        "server_settings": {
+            "jit": "off",  # JITを無効化してパフォーマンス安定化
+        },
     },
 )
 
