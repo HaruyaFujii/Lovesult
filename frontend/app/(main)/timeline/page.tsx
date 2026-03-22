@@ -54,17 +54,18 @@ export default function TimelinePage() {
     if (!postToDelete) return;
 
     // 楽観的更新：即座に投稿を一覧から削除
-    queryClient.setQueryData(['posts', queryParams], (old: any) => {
-      if (!old) return old;
+    queryClient.setQueryData(['posts', queryParams], (old: unknown) => {
+      const oldData = old as { posts: Array<{ id: string }> } | undefined;
+      if (!oldData) return oldData;
       return {
-        ...old,
-        posts: old.posts.filter((post: any) => post.id !== postToDelete),
+        ...oldData,
+        posts: oldData.posts.filter((post) => post.id !== postToDelete),
       };
     });
 
     try {
       await deletePost.mutateAsync({ postId: postToDelete });
-    } catch (error: any) {
+    } catch (error) {
       console.error('投稿の削除に失敗しました:', error);
       // エラー時は元に戻すため再取得
       await postsQuery.refetch();
@@ -84,8 +85,8 @@ export default function TimelinePage() {
       {/* モバイルヘッダー */}
       <TimelineHeader />
 
-      {/* メインコンテンツ */}
-      <div className="flex-1">
+      {/* メインコンテンツ - bottom paddingを追加してナビゲーションと被らないように */}
+      <div className="flex-1 pb-16">
         <PullToRefreshContainer onRefresh={handleRefresh}>
           {/* タブフィルター */}
           <div className="bg-white border-b border-gray-200">
@@ -130,22 +131,27 @@ export default function TimelinePage() {
           <div className="bg-white">
             {posts
               .filter(
-                (post: any, index: number, arr: any[]) =>
-                  arr.findIndex((p: any) => p.id === post.id) === index
+                (post: { id: string }, index: number, arr: Array<{ id: string }>) =>
+                  arr.findIndex((p) => p.id === post.id) === index
               )
-              .map((post: any, index: number) => {
-                const isMyPost = currentUser && post.user?.id === currentUser.id;
-                const isOptimistic = post._optimistic;
-                return (
-                  <div key={post.id} className={index > 0 ? 'border-t border-gray-200' : ''}>
-                    <PostCard
-                      post={post}
-                      showActions={Boolean(isMyPost && !isOptimistic)}
-                      onDelete={() => handleDeletePost(post.id)}
-                    />
-                  </div>
-                );
-              })}
+              .map(
+                (
+                  post: { id: string; user?: { id: string }; _optimistic?: boolean },
+                  index: number
+                ) => {
+                  const isMyPost = currentUser && post.user?.id === currentUser.id;
+                  const isOptimistic = post._optimistic;
+                  return (
+                    <div key={post.id} className={index > 0 ? 'border-t border-gray-200' : ''}>
+                      <PostCard
+                        post={post}
+                        showActions={Boolean(isMyPost && !isOptimistic)}
+                        onDelete={() => handleDeletePost(post.id)}
+                      />
+                    </div>
+                  );
+                }
+              )}
 
             {loading && (
               <div className="text-center py-12 border-t border-gray-200">

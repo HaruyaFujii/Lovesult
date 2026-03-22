@@ -46,13 +46,7 @@ export function useCreatePost(currentUser?: User) {
       name: currentUser.name || currentUser.nickname,
       avatar_url: currentUser.avatar_url || null,
     };
-  }, [
-    currentUser,
-    currentUser?.id,
-    currentUser?.nickname,
-    currentUser?.name,
-    currentUser?.avatar_url,
-  ]);
+  }, [currentUser]);
 
   const optimisticPostData = useMemo(() => {
     if (!currentUser) return null;
@@ -60,7 +54,7 @@ export function useCreatePost(currentUser?: User) {
       author_status: currentUser.status,
       author_age_range: currentUser.age_range,
     };
-  }, [currentUser, currentUser?.status, currentUser?.age_range]);
+  }, [currentUser]);
 
   return useMutation({
     mutationFn: async (data: { content: string }) => {

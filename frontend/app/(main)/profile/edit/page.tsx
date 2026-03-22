@@ -68,7 +68,7 @@ export default function ProfileEditPage() {
       await queryClient.refetchQueries({ queryKey: ['/api/v1/users/me'] });
 
       router.push('/profile');
-    } catch (error: any) {
+    } catch (error) {
       console.error('Profile update error:', error);
       let errorMessage = 'プロフィールの更新に失敗しました';
 

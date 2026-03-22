@@ -23,9 +23,7 @@ export function MainLayout({ children }: Props) {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <main className={hideNav ? '' : 'pb-[calc(64px+env(safe-area-inset-bottom))]'}>
-        {children}
-      </main>
+      <main className={hideNav ? '' : ''}>{children}</main>
 
       {!hideNav && (
         <>

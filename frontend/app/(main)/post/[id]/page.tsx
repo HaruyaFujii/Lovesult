@@ -60,11 +60,15 @@ export default function PostDetailPage({ params }: PostDetailPageProps) {
     if (focusReplyId && replies && replies.length > 0) {
       const pathToExpand = findReplyPath(replies, focusReplyId);
       if (pathToExpand && pathToExpand.length > 0) {
-        const newSet = new Set(pathToExpand);
-        setExpandedReplies(newSet);
+        // Use setTimeout to avoid setState in effect warning
+        const timer = setTimeout(() => {
+          const newSet = new Set(pathToExpand);
+          setExpandedReplies(newSet);
+        }, 0);
+        return () => clearTimeout(timer);
       }
     }
-  }, [focusReplyId]); // Only depend on focusReplyId to avoid cascading
+  }, [focusReplyId, replies]);
 
   const handleUpdatePost = async (content: string) => {
     updatePost(content);
@@ -126,7 +130,7 @@ export default function PostDetailPage({ params }: PostDetailPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-white pb-24">
+    <div className="min-h-screen bg-white pb-20">
       <div className="max-w-2xl mx-auto">
         {/* Post */}
         <div className="border-b">
@@ -202,7 +206,7 @@ export default function PostDetailPage({ params }: PostDetailPageProps) {
         </div>
       </div>
 
-      {/* Reply Form (Fixed at bottom) */}
+      {/* Reply Form (Fixed at bottom - ナビゲーションなしなので直接bottom-0) */}
       {user && (
         <div
           id="main-reply-form"

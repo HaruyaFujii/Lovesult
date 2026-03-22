@@ -119,7 +119,7 @@ export default function ReplyDetailPage({ params }: ReplyDetailPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-white pb-24">
+    <div className="min-h-screen bg-white pb-20">
       <div className="max-w-2xl mx-auto">
         {/* Main Reply */}
         <div className="border-b">
@@ -169,7 +169,7 @@ export default function ReplyDetailPage({ params }: ReplyDetailPageProps) {
         </div>
       </div>
 
-      {/* Reply Form (Fixed at bottom) */}
+      {/* Reply Form (Fixed at bottom - ナビゲーションなしなので直接bottom-0) */}
       {(user || currentUser) && (
         <div
           id="main-reply-form"

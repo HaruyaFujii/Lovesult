@@ -1,7 +1,7 @@
 import { createClient } from '../supabase/client';
 
 // セッションキャッシュ
-let sessionCache: { session: any; timestamp: number } | null = null;
+let sessionCache: { session: { access_token?: string }; timestamp: number } | null = null;
 const CACHE_DURATION = 30000; // 30秒
 
 /**
@@ -62,7 +62,7 @@ export async function getAuthToken(): Promise<string | null> {
     }
 
     return null;
-  } catch (error) {
+  } catch {
     // エラーログを削除（ノイズを減らす）
     return null;
   }

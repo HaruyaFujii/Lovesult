@@ -24,7 +24,7 @@ export function BottomNavigation() {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 safe-area-bottom">
-      <div className="flex items-center justify-around h-16">
+      <div className="flex items-center justify-around h-16 px-2">
         {NAV_ITEMS.map(({ href, icon: Icon, label }) => {
           const isActive = isActivePath(href);
 
@@ -34,10 +34,11 @@ export function BottomNavigation() {
               href={href}
               className={`
                 flex flex-col items-center justify-center
-                w-full h-full
+                w-full h-full py-2
                 transition-colors duration-200
                 ${isActive ? 'text-pink-500' : 'text-gray-500'}
-                btn-press
+                btn-press no-select
+                active:bg-gray-50 rounded-lg
               `}
             >
               <div className="relative">

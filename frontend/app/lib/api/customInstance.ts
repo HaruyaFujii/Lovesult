@@ -85,7 +85,7 @@ export const customInstance = async <T>(
           const supabase = createClient();
           await supabase.auth.signOut();
           window.location.href = '/login';
-        } catch (signOutError) {
+        } catch {
           // Silently fail
         }
       }

@@ -8,7 +8,7 @@ import { useQueryClient } from '@tanstack/react-query';
 type AuthContextType = {
   user: User | null;
   loading: boolean;
-  session: any | null;
+  session: { access_token?: string } | null;
   getAccessToken: () => Promise<string | null>;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string) => Promise<void>;
@@ -19,7 +19,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<any | null>(null);
+  const [session, setSession] = useState<{ access_token?: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [supabase] = useState(() => createClient());
   const queryClient = useQueryClient();
@@ -81,7 +81,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isMounted = false;
       subscription.unsubscribe();
     };
-  }, [supabase, queryClient]);
+  }, [supabase, queryClient, user?.id]);
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({

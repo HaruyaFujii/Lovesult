@@ -49,7 +49,7 @@ export function FetchInterceptor() {
               const supabase = createClient();
               await supabase.auth.signOut();
               window.location.href = '/login';
-            } catch (error) {
+            } catch {
               // Silently fail
             }
           }

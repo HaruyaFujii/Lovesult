@@ -4,6 +4,60 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* スマホ向け最適化 */
+@layer base {
+  /* iOSのSafariでのタップハイライトを無効化 */
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* スクロールのパフォーマンス向上 */
+  html {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* セーフエリア対応 */
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  /* タッチターゲットの最小サイズ (44px) */
+  button, a, [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* プルダウン更新のオーバースクロール制御 */
+  body {
+    overscroll-behavior-y: contain;
+  }
+
+  /* フォーム要素のスタイルリセット */
+  input, textarea, select {
+    font-size: 16px; /* iOSでの自動ズームを防ぐ */
+  }
+
+  /* スマホでの選択禁止 */
+  .no-select {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* ボタンプレスエフェクト */
+  .btn-press {
+    transition: transform 0.1s;
+  }
+
+  .btn-press:active {
+    transform: scale(0.95);
+  }
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
