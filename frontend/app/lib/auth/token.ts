@@ -7,18 +7,47 @@ import { createClient } from '../supabase/client';
 export async function getAuthToken(): Promise<string | null> {
   try {
     const supabase = createClient();
-    const {
-      data: { session },
-      error,
-    } = await supabase.auth.getSession();
 
-    if (error) {
-      console.error('Token retrieval error:', error);
-      return null;
+    // リトライロジック
+    let attempts = 0;
+    const maxAttempts = 3;
+
+    while (attempts < maxAttempts) {
+      try {
+        const {
+          data: { session },
+          error,
+        } = await supabase.auth.getSession();
+
+        if (error) {
+          if (error.message?.includes('Lock') && attempts < maxAttempts - 1) {
+            attempts++;
+            await new Promise((resolve) => setTimeout(resolve, 200 * attempts));
+            continue;
+          }
+          console.error('Token retrieval error:', error);
+          return null;
+        }
+
+        const token = session?.access_token || null;
+        return token;
+      } catch (innerError) {
+        if (
+          innerError &&
+          typeof innerError === 'object' &&
+          'message' in innerError &&
+          (innerError.message as string)?.includes('Lock') &&
+          attempts < maxAttempts - 1
+        ) {
+          attempts++;
+          await new Promise((resolve) => setTimeout(resolve, 200 * attempts));
+          continue;
+        }
+        throw innerError;
+      }
     }
 
-    const token = session?.access_token || null;
-    return token;
+    return null;
   } catch (error) {
     console.error('Failed to get auth token:', error);
     return null;
