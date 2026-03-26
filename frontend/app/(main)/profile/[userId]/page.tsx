@@ -1,6 +1,6 @@
 'use client';
 
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useUserProfile } from '@/hooks/use-user';
 import { useUserPersonalityResult } from '@/hooks/use-personality';
 // import { useCreateConversation } from '@/hooks/use-dm';
