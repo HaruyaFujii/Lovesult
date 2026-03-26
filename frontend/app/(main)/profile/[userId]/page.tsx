@@ -1,15 +1,15 @@
 'use client';
 
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { useUserProfile } from '@/hooks/use-user';
 import { useUserPersonalityResult } from '@/hooks/use-personality';
-import { useCreateConversation } from '@/hooks/use-dm';
+// import { useCreateConversation } from '@/hooks/use-dm';
 import { FollowButton } from '@/components/FollowButton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Calendar, Users, MessageCircle, Heart, Star } from 'lucide-react';
+import { Calendar, Users, MessageCircle, Heart, Star, AlertCircle } from 'lucide-react';
 import { formatDistanceToNowJST } from '@/lib/utils/date';
 import {
   getUserStatusLabel,
@@ -25,18 +25,18 @@ export default function UserProfilePage() {
 
   const { data: profile, isLoading, error } = useUserProfile(userId);
   const { data: personalityResult } = useUserPersonalityResult(userId);
-  const { mutate: createConversation, isPending: isCreatingConversation } = useCreateConversation();
+  // const { mutate: createConversation, isPending: isCreatingConversation } = useCreateConversation();
 
-  const handleSendMessage = () => {
-    createConversation(userId, {
-      onSuccess: (conversation) => {
-        router.push(`/messages/${conversation.id}`);
-      },
-      onError: () => {
-        // エラーハンドリングは必要に応じて追加
-      },
-    });
-  };
+  // const handleSendMessage = () => {
+  //   createConversation(userId, {
+  //     onSuccess: (conversation) => {
+  //       router.push(`/messages/${conversation.id}`);
+  //     },
+  //     onError: () => {
+  //       // エラーハンドリングは必要に応じて追加
+  //     },
+  //   });
+  // };
 
   if (isLoading) {
     return <div className="text-center py-8">読み込み中...</div>;
@@ -73,12 +73,13 @@ export default function UserProfilePage() {
                 </div>
                 <div className="flex gap-2">
                   <Button
-                    onClick={handleSendMessage}
-                    disabled={isCreatingConversation}
+                    disabled={true}
                     className="gap-2"
+                    variant="outline"
+                    title="電気通信事業の届出が必要なため、現在利用不可"
                   >
-                    <MessageCircle className="h-4 w-4" />
-                    メッセージ
+                    <AlertCircle className="h-4 w-4" />
+                    メッセージ（利用不可）
                   </Button>
                   <FollowButton userId={userId} />
                 </div>
