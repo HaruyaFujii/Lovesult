@@ -118,13 +118,13 @@ export default function NotificationsPage() {
   };
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className="min-h-screen flex flex-col bg-gray-50">
       {/* モバイルヘッダー */}
       <MobileHeader />
 
       {/* メインコンテンツ */}
-      <div className="flex-1">
-        <PullToRefreshContainer onRefresh={handleRefresh}>
+      <PullToRefreshContainer onRefresh={handleRefresh}>
+        <div className="pb-20">
           <div className="bg-white">
             {notifications.length === 0 ? (
               <div className="text-center py-12">
@@ -193,8 +193,8 @@ export default function NotificationsPage() {
               </div>
             )}
           </div>
-        </PullToRefreshContainer>
-      </div>
+        </div>
+      </PullToRefreshContainer>
     </div>
   );
 }

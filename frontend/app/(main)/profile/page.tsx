@@ -64,14 +64,13 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className="min-h-screen flex flex-col bg-gray-50">
       {/* モバイルヘッダー */}
       <MobileHeader />
 
       {/* メインコンテンツ */}
-      <div className="flex-1">
-        <PullToRefreshContainer onRefresh={async () => {}}>
-          <div className="space-y-4 px-4 py-4">
+      <PullToRefreshContainer onRefresh={async () => {}}>
+        <div className="space-y-4 px-4 py-4 pb-20">
             {/* プロフィールヘッダー */}
             <Card>
               <CardHeader>
@@ -268,9 +267,8 @@ export default function ProfilePage() {
                 </div>
               </CardContent>
             </Card>
-          </div>
-        </PullToRefreshContainer>
-      </div>
+        </div>
+      </PullToRefreshContainer>
     </div>
   );
 }

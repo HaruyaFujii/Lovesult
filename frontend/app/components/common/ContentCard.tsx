@@ -86,7 +86,15 @@ export function ContentCard({
       onClick={handleClick}
     >
       {/* Avatar */}
-      <Avatar className="h-10 w-10 flex-shrink-0">
+      <Avatar
+        className="h-10 w-10 flex-shrink-0 cursor-pointer"
+        onClick={(e) => {
+          e.stopPropagation();
+          if (author.id) {
+            window.location.href = `/profile/${author.id}`;
+          }
+        }}
+      >
         <AvatarImage src={author.avatar_url || undefined} />
         <AvatarFallback className="text-xs">{author.nickname?.charAt(0) || 'U'}</AvatarFallback>
       </Avatar>
@@ -109,21 +117,32 @@ export function ContentCard({
 
           {/* Actions dropdown */}
           {showActions && (onEdit || onDelete) && (
-            <div data-no-navigation>
+            <div data-no-navigation onClick={(e) => e.stopPropagation()}>
               <DropdownMenu>
-                <DropdownMenuTrigger className="p-1 hover:bg-gray-200 rounded-full transition-colors">
+                <DropdownMenuTrigger
+                  className="p-1 hover:bg-gray-200 rounded-full transition-colors"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <MoreHorizontal className="h-4 w-4 text-gray-500" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   {onEdit && (
-                    <DropdownMenuItem onClick={onEdit}>
+                    <DropdownMenuItem
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEdit();
+                      }}
+                    >
                       <Edit2 className="h-4 w-4 mr-2" />
                       編集
                     </DropdownMenuItem>
                   )}
                   {onDelete && (
                     <DropdownMenuItem
-                      onClick={onDelete}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete();
+                      }}
                       className="text-red-600 focus:text-red-600"
                     >
                       <Trash2 className="h-4 w-4 mr-2" />

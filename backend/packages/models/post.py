@@ -40,7 +40,10 @@ class Post(PostBase, table=True):
 
     # Relationships
     user: Optional["User"] = Relationship(back_populates="posts")
-    likes: list["Like"] = Relationship(back_populates="post")
+    likes: list["Like"] = Relationship(
+        back_populates="post",
+        sa_relationship_kwargs={"cascade": "all, delete-orphan"},
+    )
     reports: list["Report"] = Relationship(
         back_populates="reported_post",
         sa_relationship_kwargs={

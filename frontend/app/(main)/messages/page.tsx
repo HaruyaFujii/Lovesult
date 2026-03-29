@@ -24,7 +24,7 @@ export default function MessagesPage() {
       <MobileHeader />
 
       {/* メインコンテンツ */}
-      <div className="flex-1 flex items-center justify-center px-6">
+      <div className="flex-1 pb-16 flex items-center justify-center px-6">
         <div className="text-center max-w-md">
           <div className="bg-gray-100 rounded-full w-20 h-20 mx-auto mb-6 flex items-center justify-center">
             <MessageCircle className="h-10 w-10 text-gray-400" />

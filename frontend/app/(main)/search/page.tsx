@@ -121,10 +121,10 @@ export default function SearchPage() {
   };
 
   return (
-    <div className="container max-w-4xl mx-auto px-4 py-8">
+    <div className="container max-w-4xl mx-auto px-4 py-8 pb-20">
       <div className="mb-6">
         {/* 検索フォーム */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 space-y-4">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 space-y-4 overflow-hidden">
           <Tabs value={searchType} onValueChange={handleSearchTypeChange}>
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="posts">投稿</TabsTrigger>
@@ -142,10 +142,10 @@ export default function SearchPage() {
               />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="flex flex-col sm:grid sm:grid-cols-2 gap-3">
               {/* ステータスフィルター */}
               <Select value={statusFilter || 'all'} onValueChange={handleStatusFilterChange}>
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="ステータスで絞り込み" />
                 </SelectTrigger>
                 <SelectContent>
@@ -158,7 +158,7 @@ export default function SearchPage() {
 
               {/* 年齢範囲フィルター */}
               <Select value={ageRangeFilter || 'all'} onValueChange={handleAgeRangeFilterChange}>
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="年齢で絞り込み" />
                 </SelectTrigger>
                 <SelectContent>
@@ -172,7 +172,7 @@ export default function SearchPage() {
               </Select>
             </div>
 
-            <TabsContent value="posts" className="mt-6">
+            <TabsContent value="posts" className="mt-6 overflow-x-hidden">
               {/* 投稿検索結果 */}
               {postsLoading && !postsData ? (
                 <div className="flex items-center justify-center min-h-[400px]">
@@ -229,7 +229,7 @@ export default function SearchPage() {
               )}
             </TabsContent>
 
-            <TabsContent value="users" className="mt-6">
+            <TabsContent value="users" className="mt-6 overflow-x-hidden">
               {/* ユーザー検索結果 */}
               {usersLoading && !usersData ? (
                 <div className="flex items-center justify-center min-h-[400px]">

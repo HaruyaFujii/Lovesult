@@ -130,8 +130,10 @@ export default function PostDetailPage({ params }: PostDetailPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-white pb-20">
-      <div className="max-w-2xl mx-auto">
+    <div className="min-h-screen bg-white flex flex-col">
+      {/* スクロール可能なコンテンツエリア */}
+      <div className="flex-1 overflow-y-auto" style={{ paddingBottom: '200px' }}>
+        <div className="max-w-2xl mx-auto">
         {/* Post */}
         <div className="border-b">
           {editing ? (
@@ -204,9 +206,10 @@ export default function PostDetailPage({ params }: PostDetailPageProps) {
             <div className="text-center py-12 text-gray-500">まだリプライはありません</div>
           )}
         </div>
+        </div>
       </div>
 
-      {/* Reply Form (Fixed at bottom - ナビゲーションなしなので直接bottom-0) */}
+      {/* Reply Form (Fixed at bottom) */}
       {user && (
         <div
           id="main-reply-form"

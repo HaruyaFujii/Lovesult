@@ -170,7 +170,7 @@ class PostService:
 
             # Add like status
             if current_user_id:
-                reply_dict["is_liked"] = await self.like_service.is_liked(current_user_id, reply.id)
+                reply_dict["is_liked"] = await self.like_service.is_reply_liked(current_user_id, reply.id)
             else:
                 reply_dict["is_liked"] = False
 

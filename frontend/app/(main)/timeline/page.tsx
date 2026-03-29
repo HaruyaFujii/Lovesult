@@ -81,13 +81,13 @@ export default function TimelinePage() {
   const loading = postsQuery.isLoading;
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className="min-h-screen flex flex-col bg-white">
       {/* モバイルヘッダー */}
       <TimelineHeader />
 
-      {/* メインコンテンツ - bottom paddingを追加してナビゲーションと被らないように */}
-      <div className="flex-1 pb-16">
-        <PullToRefreshContainer onRefresh={handleRefresh}>
+      {/* メインコンテンツ */}
+      <PullToRefreshContainer onRefresh={handleRefresh}>
+        <div className="pb-20">
           {/* タブフィルター */}
           <div className="bg-white border-b border-gray-200">
             <div className="flex">
@@ -171,8 +171,8 @@ export default function TimelinePage() {
               </div>
             )}
           </div>
-        </PullToRefreshContainer>
-      </div>
+        </div>
+      </PullToRefreshContainer>
 
       {/* 削除確認モーダル */}
       <DeleteConfirmModal
