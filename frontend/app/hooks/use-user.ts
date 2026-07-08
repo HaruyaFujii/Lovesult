@@ -1,11 +1,15 @@
-import { useGetUser } from '@/lib/api/generated/endpoints/users/users';
-import { customInstance } from '@/lib/api/customInstance';
 import { useMutation, useQuery } from '@tanstack/react-query';
+import { getUser } from '@/lib/api/generated/endpoints/users/users';
+import { customInstance } from '@/lib/api/customInstance';
 import type { UserUpdate, UserResponse } from '@/lib/api/generated/models';
 
+/**
+ * 現在のログインユーザー。
+ * queryKey は `['currentUser']` に統一。
+ */
 export const useCurrentUser = (enabled = true) => {
   return useQuery({
-    queryKey: ['/api/v1/users/me'],
+    queryKey: ['currentUser'],
     queryFn: async () => {
       try {
         const response = await customInstance<{ data: UserResponse }>('/api/v1/users/me', {
@@ -28,13 +32,24 @@ export const useCurrentUser = (enabled = true) => {
   });
 };
 
+/**
+ * ユーザープロフィール。
+ * queryKey は `['user', userId]` に統一。
+ * 生成された getUser 関数を利用。auth ヘッダは FetchInterceptor が付与する。
+ */
 export const useUserProfile = (userId: string, enabled = true) => {
-  return useGetUser(userId, {
-    query: {
-      enabled: enabled && !!userId,
-      retry: 1,
-      staleTime: 5 * 60 * 1000, // 5 minutes
+  return useQuery({
+    queryKey: ['user', userId],
+    queryFn: async () => {
+      const response = await getUser(userId);
+      if (response.status !== 200) {
+        throw new Error('Failed to fetch user');
+      }
+      return response.data as UserResponse;
     },
+    enabled: enabled && !!userId,
+    retry: 1,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 };
 

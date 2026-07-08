@@ -3,6 +3,8 @@
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { Home, Search, MessageCircle, Bell, User } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { useGetUnreadNotificationCount } from '@/hooks/use-notifications';
 
 const NAV_ITEMS = [
   { href: '/timeline', icon: Home, label: 'ホーム' },
@@ -14,6 +16,9 @@ const NAV_ITEMS = [
 
 export function BottomNavigation() {
   const pathname = usePathname();
+  const { user } = useAuth();
+  const { data: unreadData } = useGetUnreadNotificationCount(!!user);
+  const unreadCount = unreadData?.unread_count ?? 0;
 
   const isActivePath = (href: string) => {
     if (href === '/timeline') {
@@ -27,6 +32,9 @@ export function BottomNavigation() {
       <div className="flex items-center justify-around h-16 px-2">
         {NAV_ITEMS.map(({ href, icon: Icon, label }) => {
           const isActive = isActivePath(href);
+          const isNotifications = href === '/notifications';
+          const showBadge = isNotifications && unreadCount > 0;
+          const badgeLabel = unreadCount >= 10 ? '9+' : String(unreadCount);
 
           return (
             <Link
@@ -47,7 +55,14 @@ export function BottomNavigation() {
                   strokeWidth={isActive ? 2.5 : 2}
                   fill={isActive ? 'currentColor' : 'none'}
                 />
-                {/* TODO: 未読バッジを後で追加 */}
+                {showBadge && (
+                  <span
+                    aria-label={`未読通知${unreadCount}件`}
+                    className="absolute -top-1 -right-1 flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full bg-pink-600 text-white text-[10px] font-semibold leading-none"
+                  >
+                    {badgeLabel}
+                  </span>
+                )}
               </div>
               <span className="text-[10px] mt-1 font-medium">{label}</span>
             </Link>

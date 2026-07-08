@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING, Optional
 from uuid import UUID, uuid4
 
+from sqlalchemy import Index
 from sqlmodel import Field, Relationship, SQLModel
 
 if TYPE_CHECKING:
@@ -25,7 +26,7 @@ class Notification(NotificationBase, table=True):
     __tablename__ = "notifications"
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=datetime.utcnow, index=True)
 
     # Relationships
     user: Optional["User"] = Relationship(
@@ -54,4 +55,8 @@ class Notification(NotificationBase, table=True):
         }
     )
 
-    __table_args__ = {"extend_existing": True}
+    __table_args__ = (
+        # 未読件数取得と未読通知一覧の高速化 (user_id, is_read) 複合インデックス
+        Index("ix_notifications_user_is_read", "user_id", "is_read"),
+        {"extend_existing": True},
+    )

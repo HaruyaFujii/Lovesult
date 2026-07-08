@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { createClient } from '@/lib/supabase/client';
 import { Reply } from '@/types';
 import { useAuth } from './useAuth';
 import { useCurrentUser } from './use-user';
-import { getReplies, createPost } from '@/lib/api/generated/endpoints/posts/posts';
+import { getReplies, createPost, deletePost } from '@/lib/api/generated/endpoints/posts/posts';
 
 interface UseRepliesForReplyOptions {
   replyId: string;
@@ -16,68 +15,51 @@ interface CreateReplyParams {
   parentId?: string;
 }
 
+/**
+ * queryKey 統一規約:
+ *   ['replies', 'for-reply', replyId] : リプライへのリプライ一覧
+ */
 export const useReplies = ({ replyId, enabled = true }: UseRepliesForReplyOptions) => {
   const { user } = useAuth();
   const { data: currentUser } = useCurrentUser();
   const queryClient = useQueryClient();
   const [optimisticReplies, setOptimisticReplies] = useState<Reply[]>([]);
 
-  // Fetch replies for a reply using generated API client
   const {
     data: replies = [],
     isLoading,
     refetch,
   } = useQuery({
-    queryKey: ['replies-for-reply', replyId],
+    queryKey: ['replies', 'for-reply', replyId],
     queryFn: async () => {
-      const supabase = createClient();
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      const response = await getReplies(replyId, {
-        headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {},
-      });
-
+      const response = await getReplies(replyId);
       if (response.status !== 200) {
         throw new Error('Failed to fetch replies');
       }
 
-      // Ensure all replies have the parent_id set to the current reply
-      const responseData = response.data as any;
-      const replies = responseData?.replies || responseData || [];
-      const repliesWithParentId = (Array.isArray(replies) ? replies : []).map((reply: any) => ({
-        ...reply,
-        parent_id: reply.parent_id || replyId,
-        post_id: reply.root_id || reply.post_id || '', // Map root_id to post_id for compatibility
-      }));
-      return repliesWithParentId as Reply[];
+      const responseData = response.data as { replies?: unknown[] } | unknown[];
+      const replyList = Array.isArray(responseData) ? responseData : (responseData?.replies ?? []);
+      const repliesWithParentId = (Array.isArray(replyList) ? replyList : []).map((reply) => {
+        const r = reply as Record<string, unknown>;
+        return {
+          ...r,
+          parent_id: r.parent_id || replyId,
+          post_id: r.root_id || r.post_id || '',
+        };
+      });
+      return repliesWithParentId as unknown as Reply[];
     },
     enabled: enabled && !!replyId,
-    staleTime: 0,
-    gcTime: 0,
-    refetchOnMount: 'always',
-    refetchOnWindowFocus: true,
+    staleTime: 30_000,
   });
 
   // Create reply mutation (reply to a reply)
   const createReplyMutation = useMutation({
     mutationFn: async ({ content, parentId }: CreateReplyParams) => {
-      const supabase = createClient();
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      // Create the reply using the unified createPost endpoint
-      const response = await createPost(
-        {
-          content,
-          parent_id: parentId, // Use the provided parentId directly
-        },
-        {
-          headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {},
-        }
-      );
+      const response = await createPost({
+        content,
+        parent_id: parentId,
+      });
 
       if (response.status !== 201) {
         throw new Error('Failed to create reply');
@@ -86,12 +68,11 @@ export const useReplies = ({ replyId, enabled = true }: UseRepliesForReplyOption
       return response.data;
     },
     onMutate: async ({ content, parentId }) => {
-      // Create optimistic reply
       const optimisticReply: Reply = {
         id: `temp-${Date.now()}`,
         content,
         user_id: currentUser?.id || user?.id || '',
-        post_id: '', // Will be filled when actual reply is created
+        post_id: '',
         parent_id: parentId,
         created_at: new Date().toISOString(),
         user: currentUser
@@ -122,17 +103,14 @@ export const useReplies = ({ replyId, enabled = true }: UseRepliesForReplyOption
       setOptimisticReplies((prev) => [...prev, optimisticReply]);
       return { optimisticReply };
     },
-    onSuccess: (data, variables, context) => {
-      // Remove optimistic reply and add real one
+    onSuccess: (_data, _variables, context) => {
       setOptimisticReplies((prev) => prev.filter((r) => r.id !== context?.optimisticReply.id));
 
-      // Invalidate queries
-      queryClient.invalidateQueries({ queryKey: ['replies-for-reply', replyId] });
-      queryClient.invalidateQueries({ queryKey: ['reply', replyId] }); // Update parent reply counts
-      queryClient.invalidateQueries({ queryKey: ['/api/v1/notifications/unread-count'] });
+      queryClient.invalidateQueries({ queryKey: ['replies', 'for-reply', replyId] });
+      queryClient.invalidateQueries({ queryKey: ['reply', replyId] });
+      queryClient.invalidateQueries({ queryKey: ['notifications', 'unread-count'] });
     },
-    onError: (error, variables, context) => {
-      // Remove optimistic reply on error
+    onError: (_error, _variables, context) => {
       if (context?.optimisticReply) {
         setOptimisticReplies((prev) => prev.filter((r) => r.id !== context.optimisticReply.id));
       }
@@ -142,29 +120,17 @@ export const useReplies = ({ replyId, enabled = true }: UseRepliesForReplyOption
   // Delete reply mutation
   const deleteReplyMutation = useMutation({
     mutationFn: async (targetReplyId: string) => {
-      const supabase = createClient();
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      const response = await fetch(`/api/v1/posts/${targetReplyId}`, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${session?.access_token}`,
-        },
-      });
-
-      if (!response.ok) {
+      const response = await deletePost(targetReplyId);
+      if (response.status >= 300) {
         throw new Error('Failed to delete reply');
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['replies-for-reply', replyId] });
-      queryClient.invalidateQueries({ queryKey: ['reply', replyId] }); // Update parent reply counts
+      queryClient.invalidateQueries({ queryKey: ['replies', 'for-reply', replyId] });
+      queryClient.invalidateQueries({ queryKey: ['reply', replyId] });
     },
   });
 
-  // Combine real and optimistic replies
   const allReplies = [...replies, ...optimisticReplies];
 
   return {

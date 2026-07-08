@@ -13,8 +13,9 @@ from packages.services.notification_service import NotificationService
 
 class LikeService:
     def __init__(self, session: AsyncSession):
-        self.repository = LikeRepository(session)
         self.session = session
+        self.repository = LikeRepository(session)
+        self.notification_service = NotificationService(session)
 
     async def like_post(self, user_id: UUID, post_id: UUID) -> bool:
         # すでにいいねしているかチェック
@@ -32,8 +33,7 @@ class LikeService:
         post_result = await self.session.execute(select(Post).where(Post.id == post_id))
         post = post_result.scalar_one()
 
-        notification_service = NotificationService(self.session)
-        await notification_service.create_like_notification(post_id, post.user_id, user_id)
+        await self.notification_service.create_like_notification(post_id, post.user_id, user_id)
 
         return True
 

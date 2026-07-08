@@ -43,8 +43,9 @@ export default function PostForm({
     try {
       await onSubmit(content);
       setContent('');
-    } catch (err: any) {
-      setError(err.message || '投稿に失敗しました');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : '投稿に失敗しました';
+      setError(msg);
     } finally {
       setLoading(false);
     }

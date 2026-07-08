@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { useSearchPosts, useSearchUsers } from '@/hooks/use-search';
 import PostCard from '@/components/post/PostCard';
+import PostCardSkeleton from '@/components/post/PostCardSkeleton';
+import { EmptyState } from '@/components/common/EmptyState';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -121,11 +123,15 @@ export default function SearchPage() {
   };
 
   return (
-    <div className="container max-w-4xl mx-auto px-4 py-8 pb-20">
-      <div className="mb-6">
+    <div className="w-full max-w-4xl mx-auto px-4 py-8 pb-20 overflow-x-hidden">
+      <div className="mb-6 min-w-0">
         {/* 検索フォーム */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 space-y-4 overflow-hidden">
-          <Tabs value={searchType} onValueChange={handleSearchTypeChange}>
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 space-y-4 overflow-hidden min-w-0">
+          <Tabs
+            value={searchType}
+            onValueChange={handleSearchTypeChange}
+            className="w-full min-w-0"
+          >
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="posts">投稿</TabsTrigger>
               <TabsTrigger value="users">ユーザー</TabsTrigger>
@@ -175,35 +181,30 @@ export default function SearchPage() {
             <TabsContent value="posts" className="mt-6 overflow-x-hidden">
               {/* 投稿検索結果 */}
               {postsLoading && !postsData ? (
-                <div className="flex items-center justify-center min-h-[400px]">
-                  <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+                <div className="-mx-4 border-t border-gray-200">
+                  <PostCardSkeleton count={4} />
                 </div>
               ) : postsError ? (
-                <div className="text-center py-12">
-                  <p className="text-gray-500">検索中にエラーが発生しました</p>
-                </div>
+                <EmptyState
+                  icon={Search}
+                  title="検索中にエラーが発生しました"
+                  description="時間をおいて再度お試しください"
+                />
               ) : !debouncedQuery && !statusFilter && !ageRangeFilter ? (
-                <div className="bg-gray-50 rounded-lg p-12">
-                  <div className="text-center">
-                    <Search className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-500">
-                      キーワードを入力するか、フィルターを選択して検索を開始してください
-                    </p>
-                  </div>
-                </div>
+                <EmptyState
+                  icon={Search}
+                  title="検索を開始しましょう"
+                  description="キーワードを入力するか、フィルターを選択して検索してください"
+                />
               ) : posts.length === 0 ? (
-                <div className="bg-gray-50 rounded-lg p-12">
-                  <div className="text-center">
-                    <Search className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-500">検索条件に一致する投稿が見つかりませんでした</p>
-                    <p className="text-gray-400 text-sm mt-2">
-                      別のキーワードやフィルターで試してみてください
-                    </p>
-                  </div>
-                </div>
+                <EmptyState
+                  icon={Search}
+                  title="検索条件に一致する投稿が見つかりませんでした"
+                  description="別のキーワードやフィルターで試してみてください"
+                />
               ) : (
-                <div className="space-y-4">
-                  {posts.map((post: any) => (
+                <div className="-mx-4 border-t border-gray-200 min-w-0">
+                  {posts.map((post) => (
                     <PostCard key={post.id} post={post} />
                   ))}
 
@@ -232,58 +233,59 @@ export default function SearchPage() {
             <TabsContent value="users" className="mt-6 overflow-x-hidden">
               {/* ユーザー検索結果 */}
               {usersLoading && !usersData ? (
-                <div className="flex items-center justify-center min-h-[400px]">
+                <div className="flex items-center justify-center min-h-[200px]">
                   <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
                 </div>
               ) : usersError ? (
-                <div className="text-center py-12">
-                  <p className="text-gray-500">検索中にエラーが発生しました</p>
-                </div>
+                <EmptyState
+                  icon={User}
+                  title="検索中にエラーが発生しました"
+                  description="時間をおいて再度お試しください"
+                />
               ) : !debouncedQuery && !statusFilter && !ageRangeFilter ? (
-                <div className="bg-gray-50 rounded-lg p-12">
-                  <div className="text-center">
-                    <User className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-500">
-                      キーワードを入力するか、フィルターを選択して検索を開始してください
-                    </p>
-                  </div>
-                </div>
+                <EmptyState
+                  icon={User}
+                  title="検索を開始しましょう"
+                  description="キーワードを入力するか、フィルターを選択して検索してください"
+                />
               ) : users.length === 0 ? (
-                <div className="bg-gray-50 rounded-lg p-12">
-                  <div className="text-center">
-                    <User className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-500">
-                      検索条件に一致するユーザーが見つかりませんでした
-                    </p>
-                    <p className="text-gray-400 text-sm mt-2">
-                      別のキーワードやフィルターで試してみてください
-                    </p>
-                  </div>
-                </div>
+                <EmptyState
+                  icon={User}
+                  title="検索条件に一致するユーザーが見つかりませんでした"
+                  description="別のキーワードやフィルターで試してみてください"
+                />
               ) : (
-                <div className="space-y-4">
-                  {users.map((user: any) => (
-                    <Link key={user.id} href={`/profile/${user.id}`}>
-                      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow cursor-pointer">
-                        <div className="flex items-center space-x-4">
-                          <Avatar className="h-12 w-12">
+                <div className="space-y-4 min-w-0">
+                  {users.map((user) => (
+                    <Link key={user.id} href={`/profile/${user.id}`} className="block min-w-0">
+                      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow cursor-pointer min-w-0">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <Avatar className="h-12 w-12 flex-shrink-0">
                             <AvatarImage src={user.avatar_url} alt={user.nickname} />
                             <AvatarFallback>
                               {user.nickname?.charAt(0)?.toUpperCase()}
                             </AvatarFallback>
                           </Avatar>
-                          <div className="flex-1">
-                            <h3 className="font-semibold text-gray-900">{user.nickname}</h3>
-                            <div className="flex items-center gap-2 mt-1">
-                              <span className="text-xs bg-pink-100 text-pink-800 px-2 py-1 rounded-full">
-                                {getStatusLabel(user.status)}
-                              </span>
-                              <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                                {getAgeRangeLabel(user.age_range)}
-                              </span>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-semibold text-gray-900 truncate">
+                              {user.nickname}
+                            </h3>
+                            <div className="flex items-center gap-2 mt-1 flex-wrap">
+                              {user.status && (
+                                <span className="text-xs bg-pink-100 text-pink-800 px-2 py-1 rounded-full whitespace-nowrap">
+                                  {getStatusLabel(user.status)}
+                                </span>
+                              )}
+                              {user.age_range && (
+                                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full whitespace-nowrap">
+                                  {getAgeRangeLabel(user.age_range)}
+                                </span>
+                              )}
                             </div>
                             {user.bio && (
-                              <p className="text-sm text-gray-600 mt-2 line-clamp-2">{user.bio}</p>
+                              <p className="text-sm text-gray-600 mt-2 line-clamp-2 break-words">
+                                {user.bio}
+                              </p>
                             )}
                           </div>
                         </div>

@@ -3,20 +3,16 @@
 import { useParams } from 'next/navigation';
 import { useUserProfile } from '@/hooks/use-user';
 import { useUserPersonalityResult } from '@/hooks/use-personality';
-// import { useCreateConversation } from '@/hooks/use-dm';
+import { useUserPosts } from '@/hooks/use-user-posts';
 import { FollowButton } from '@/components/FollowButton';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { Calendar, Users, MessageCircle, Heart, Star, AlertCircle } from 'lucide-react';
-import { formatDistanceToNowJST } from '@/lib/utils/date';
-import {
-  getUserStatusLabel,
-  getGenderLabel,
-  getAgeRangeLabel,
-  getPersonalityTypeLabel,
-} from '@/lib/utils/enum-labels';
+import { Skeleton } from '@/components/ui/skeleton';
+import { MessageCircle } from 'lucide-react';
+import PostCard from '@/components/post/PostCard';
+import PostCardSkeleton from '@/components/post/PostCardSkeleton';
+import { EmptyState } from '@/components/common/EmptyState';
+import { getUserStatusLabel, getGenderLabel, getAgeRangeLabel } from '@/lib/utils/enum-labels';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { PullToRefreshContainer } from '@/components/layout/PullToRefreshContainer';
 
@@ -24,217 +20,166 @@ export default function UserProfilePage() {
   const params = useParams();
   const userId = params.userId as string;
 
-  const { data: profile, isLoading, error } = useUserProfile(userId);
+  const { data: profileData, isLoading, error } = useUserProfile(userId);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const profile = profileData as any;
   const { data: personalityResult } = useUserPersonalityResult(userId);
-  // const { mutate: createConversation, isPending: isCreatingConversation } = useCreateConversation();
+  const userPostsQuery = useUserPosts(userId, { limit: 20 }, !!userId);
+  const posts = userPostsQuery.data?.posts || [];
+  const postsLoading = userPostsQuery.isLoading;
 
-  // const handleSendMessage = () => {
-  //   createConversation(userId, {
-  //     onSuccess: (conversation) => {
-  //       router.push(`/messages/${conversation.id}`);
-  //     },
-  //     onError: () => {
-  //       // エラーハンドリングは必要に応じて追加
-  //     },
-  //   });
-  // };
+  const handleRefresh = async () => {
+    await Promise.all([userPostsQuery.refetch()]);
+  };
 
   if (isLoading) {
-    return <div className="text-center py-8">読み込み中...</div>;
-  }
-
-  if (error || !profile) {
     return (
-      <div className="text-center py-8">
-        <p className="text-gray-600 mb-4">プロフィールが見つかりません</p>
+      <div className="min-h-screen flex flex-col bg-white">
+        <MobileHeader />
+        <div className="max-w-xl mx-auto w-full sm:border-x border-gray-200 bg-white pb-20">
+          <div className="px-4 pt-4">
+            <div className="flex items-start justify-between">
+              <Skeleton className="h-20 w-20 rounded-full" />
+              <Skeleton className="h-8 w-24 rounded-full" />
+            </div>
+            <div className="mt-3 space-y-2">
+              <Skeleton className="h-6 w-40 rounded" />
+              <Skeleton className="h-4 w-56 rounded" />
+              <Skeleton className="h-4 w-full rounded" />
+              <div className="flex gap-4 mt-3">
+                <Skeleton className="h-4 w-20 rounded" />
+                <Skeleton className="h-4 w-20 rounded" />
+              </div>
+            </div>
+          </div>
+          <div className="mt-4 border-b border-gray-200 px-4 py-3">
+            <Skeleton className="h-5 w-20 rounded" />
+          </div>
+          <PostCardSkeleton count={3} />
+        </div>
       </div>
     );
   }
 
+  if (error || !profile) {
+    return (
+      <div className="min-h-screen flex flex-col bg-white">
+        <MobileHeader />
+        <div className="max-w-xl mx-auto w-full sm:border-x border-gray-200 bg-white pb-20">
+          <EmptyState title="プロフィールが見つかりません" />
+        </div>
+      </div>
+    );
+  }
+
+  const displayName = profile?.nickname || '名前未設定';
+  const followingCount = profile?.following_count;
+  const followersCount = profile?.followers_count;
+  const hasFollowCounts = typeof followingCount === 'number' && typeof followersCount === 'number';
+
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
-      {/* モバイルヘッダー */}
+    <div className="min-h-screen flex flex-col bg-white">
       <MobileHeader />
-
-      {/* メインコンテンツ */}
-      <PullToRefreshContainer onRefresh={async () => {}}>
-        <div className="px-4 py-4 space-y-4 pb-20">
-            {/* プロフィールヘッダー */}
-            <Card>
-              <CardHeader>
-                <div className="space-y-4">
-                  {/* アバターと基本情報 */}
-                  <div className="flex items-center gap-4">
-                    <Avatar className="h-16 w-16 flex-shrink-0">
-                      <AvatarImage src={(profile as any)?.data?.avatar_url || undefined} />
-                      <AvatarFallback>{(profile as any)?.data?.nickname?.charAt(0) || 'U'}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <h1 className="text-xl font-bold text-gray-900 truncate">
-                        {(profile as any)?.data?.nickname || '名前未設定'}
-                      </h1>
-                      <p className="text-sm text-gray-600 truncate">{(profile as any)?.data?.email}</p>
-                    </div>
-                  </div>
-
-                  {/* アクションボタン */}
-                  <div className="flex gap-2">
-                    <div className="flex-1">
-                      <FollowButton userId={userId} />
-                    </div>
-                    <Button
-                      disabled={true}
-                      className="flex-1"
-                      variant="outline"
-                      title="電気通信事業の届出が必要なため、現在利用不可"
-                    >
-                      <AlertCircle className="h-4 w-4 mr-1" />
-                      <span className="hidden sm:inline">メッセージ</span>
-                      <span className="sm:hidden">DM</span>
-                    </Button>
-                  </div>
-
-                  {/* ステータスと年代 */}
-                  <div className="flex items-center gap-2 flex-wrap">
-                <Badge variant="secondary">
-                  {getUserStatusLabel((profile as any)?.data?.status)}
-                </Badge>
-                {(profile as any)?.data?.age_range && (
-                  <Badge variant="outline">
-                    {getAgeRangeLabel((profile as any).data.age_range)}
-                  </Badge>
-                )}
-                {(profile as any)?.data?.gender && (
-                  <Badge variant="outline">{getGenderLabel((profile as any).data.gender)}</Badge>
-                )}
+      <PullToRefreshContainer onRefresh={handleRefresh}>
+        <div className="pb-20">
+          <div className="max-w-xl mx-auto sm:border-x border-gray-200 bg-white">
+            {/* ヘッダーブロック */}
+            <div className="px-4 pt-4 pb-3">
+              <div className="flex items-start justify-between gap-4">
+                <Avatar className="h-20 w-20 flex-shrink-0">
+                  <AvatarImage src={profile?.avatar_url || undefined} />
+                  <AvatarFallback className="text-xl">
+                    {profile?.nickname?.charAt(0) || 'U'}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-shrink-0">
+                  <FollowButton userId={userId} />
+                </div>
               </div>
 
-                  {/* 自己紹介 */}
-                  {(profile as any)?.data?.bio && (
-                    <p className="text-gray-700 text-sm leading-relaxed">{(profile as any).data.bio}</p>
+              {/* 名前ブロック */}
+              <div className="mt-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h1 className="text-xl font-bold text-gray-900 truncate">{displayName}</h1>
+                  {profile?.status && (
+                    <Badge variant="secondary" className="text-[11px] px-2 py-0.5">
+                      {getUserStatusLabel(profile.status)}
+                    </Badge>
                   )}
-
-                  {/* 性格診断結果 */}
-                  {personalityResult ? (
-                <div className="bg-gradient-to-r from-pink-50 to-purple-50 rounded-lg p-4 mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="text-3xl">{personalityResult.primary_type.emoji}</div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900">
-                        {personalityResult.primary_type.name}
-                      </h3>
-                      <p className="text-sm text-gray-600">恋愛タイプ診断結果</p>
-                      {personalityResult.secondary_type && (
-                        <div className="flex items-center gap-1 mt-1">
-                          <span className="text-lg">{personalityResult.secondary_type.emoji}</span>
-                          <span className="text-xs text-gray-500">
-                            サブ: {personalityResult.secondary_type.name}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
                 </div>
-              ) : (
-                <div className="bg-gray-50 rounded-lg p-3 mb-4 text-center">
-                  <Heart className="h-6 w-6 text-gray-400 mx-auto mb-1" />
-                  <p className="text-sm text-gray-500">まだ性格診断を受けていません</p>
+                <div className="mt-1 text-sm text-gray-500">
+                  {[
+                    profile?.age_range && getAgeRangeLabel(profile.age_range),
+                    profile?.gender && getGenderLabel(profile.gender),
+                  ]
+                    .filter(Boolean)
+                    .join(' ・ ')}
+                </div>
+              </div>
+
+              {/* bio */}
+              {profile?.bio && (
+                <p className="mt-2 text-[15px] text-gray-900 whitespace-pre-wrap break-words">
+                  {profile.bio}
+                </p>
+              )}
+
+              {/* メタ行(フォロー数) */}
+              {hasFollowCounts && (
+                <div className="mt-3 flex gap-4 text-sm">
+                  <span>
+                    <span className="font-bold text-gray-900">{followingCount}</span>{' '}
+                    <span className="text-gray-500">フォロー中</span>
+                  </span>
+                  <span>
+                    <span className="font-bold text-gray-900">{followersCount}</span>{' '}
+                    <span className="text-gray-500">フォロワー</span>
+                  </span>
                 </div>
               )}
 
-                  {/* 統計情報 */}
-                  <div className="grid grid-cols-2 gap-2 text-sm text-gray-600">
-                    <div className="flex items-center gap-1">
-                      <MessageCircle className="h-4 w-4" />
-                      <span>{(profile as any)?.data?.posts_count || 0} 投稿</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Users className="h-4 w-4" />
-                      <span>{(profile as any)?.data?.followers_count || 0} フォロワー</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Users className="h-4 w-4" />
-                      <span>{(profile as any)?.data?.following_count || 0} フォロー中</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Calendar className="h-4 w-4" />
-                      <span>{formatDistanceToNowJST((profile as any)?.data?.created_at)}</span>
-                    </div>
-                  </div>
+              {/* 性格診断結果(控えめ) */}
+              {personalityResult && (
+                <div className="mt-3 flex items-center gap-2 rounded-lg bg-gradient-to-r from-pink-50 to-purple-50 px-3 py-2 text-sm">
+                  <span className="text-lg">{personalityResult.primary_type.emoji}</span>
+                  <span className="font-semibold text-gray-900">
+                    {personalityResult.primary_type.name}
+                  </span>
+                  {personalityResult.secondary_type && (
+                    <span className="ml-auto text-xs text-gray-500">
+                      サブ: {personalityResult.secondary_type.name}
+                    </span>
+                  )}
                 </div>
-              </CardHeader>
-            </Card>
+              )}
+            </div>
 
-            {/* 性格診断詳細（結果がある場合のみ） */}
-            {personalityResult && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <Star className="h-5 w-5 text-yellow-500" />
-                    恋愛タイプ診断結果
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {/* プライマリタイプ */}
-                    <div className="flex items-start gap-3 p-3 bg-gradient-to-r from-pink-50 to-purple-50 rounded-lg">
-                      <div className="text-3xl flex-shrink-0">{personalityResult.primary_type.emoji}</div>
-                      <div className="flex-1">
-                        <h3 className="text-lg font-bold text-gray-900">
-                          {personalityResult.primary_type.name}
-                        </h3>
-                        <p className="text-sm text-gray-700 mt-1">{personalityResult.primary_type.description}</p>
-                      </div>
-                    </div>
+            {/* タブ風の見出し */}
+            <div className="flex border-b border-gray-200">
+              <div className="flex-1 py-3 text-center text-sm font-bold text-gray-900 border-b-2 border-pink-500">
+                投稿
+              </div>
+            </div>
 
-                    {/* サブタイプ */}
-                    {personalityResult.secondary_type && (
-                      <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                        <div className="text-2xl flex-shrink-0">{personalityResult.secondary_type.emoji}</div>
-                        <div>
-                          <p className="text-xs text-gray-600">サブタイプ</p>
-                          <p className="text-sm font-semibold">{personalityResult.secondary_type.name}</p>
-                        </div>
-                      </div>
-                    )}
+            {/* 投稿リスト */}
+            <div className="bg-white">
+              {posts
+                .filter((post, index, arr) => arr.findIndex((p) => p.id === post.id) === index)
+                .map((post) => (
+                  <PostCard key={post.id} post={post} showActions={false} />
+                ))}
 
-                    {/* スコア */}
-                    <div>
-                      <h4 className="font-semibold text-sm mb-2">性格スコア</h4>
-                      <div className="grid grid-cols-1 gap-2">
-                  {Object.entries(personalityResult.scores).map(([type, score]) => (
-                    <div
-                      key={type}
-                      className="flex items-center justify-between bg-gray-50 rounded-lg p-2"
-                    >
-                      <span className="text-xs font-medium">{getPersonalityTypeLabel(type)}</span>
-                      <div className="flex items-center gap-2">
-                        <div className="w-20 bg-gray-200 rounded-full h-1.5">
-                          <div
-                            className="bg-pink-500 h-1.5 rounded-full"
-                            style={{ width: `${(score / 20) * 100}%` }}
-                          />
-                        </div>
-                        <span className="text-xs font-medium w-6 text-right">{score}</span>
-                      </div>
-                    </div>
-                  ))}
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+              {postsLoading && posts.length === 0 && <PostCardSkeleton count={3} />}
 
-            {/* タブエリア（将来の投稿一覧など用） */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">投稿</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center text-gray-500 py-8 text-sm">投稿一覧は実装予定です</div>
-              </CardContent>
-            </Card>
+              {!postsLoading && posts.length === 0 && (
+                <EmptyState
+                  icon={MessageCircle}
+                  title="まだ投稿がありません"
+                  description="このユーザーはまだ投稿していません"
+                />
+              )}
+            </div>
+          </div>
         </div>
       </PullToRefreshContainer>
     </div>

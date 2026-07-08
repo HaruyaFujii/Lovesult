@@ -1,5 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
-import { customInstance } from '@/lib/api/customInstance';
+import {
+  searchPostsApiV1SearchPostsGet,
+  searchUsersApiV1SearchUsersGet,
+} from '@/lib/api/generated/endpoints/search/search';
 import { Post, User } from '@/types';
 
 export interface PostSearchResponse {
@@ -22,23 +25,26 @@ export interface SearchParams {
   limit?: number;
 }
 
+/**
+ * queryKey 統一規約:
+ *   ['search', 'posts', params]
+ *   ['search', 'users', params]
+ */
 export function useSearchPosts(params: SearchParams, enabled = true) {
   return useQuery({
     queryKey: ['search', 'posts', params],
     queryFn: async (): Promise<PostSearchResponse> => {
-      const queryParams: Record<string, string | number> = {};
-
-      if (params.q) queryParams.q = params.q;
-      if (params.status) queryParams.status = params.status;
-      if (params.age_range) queryParams.age_range = params.age_range;
-      if (params.cursor) queryParams.cursor = params.cursor;
-      if (params.limit) queryParams.limit = params.limit;
-
-      const response = await customInstance<{ data: PostSearchResponse }>('/api/v1/search/posts', {
-        params: queryParams,
+      const response = await searchPostsApiV1SearchPostsGet({
+        ...(params.q && { q: params.q }),
+        ...(params.status && { status: params.status }),
+        ...(params.age_range && { age_range: params.age_range }),
+        ...(params.cursor && { cursor: params.cursor }),
+        ...(params.limit != null && { limit: params.limit }),
       });
-
-      return response.data;
+      if (response.status !== 200) {
+        throw new Error('Failed to search posts');
+      }
+      return response.data as unknown as PostSearchResponse;
     },
     enabled,
     staleTime: 2 * 60 * 1000, // 2 minutes
@@ -49,19 +55,17 @@ export function useSearchUsers(params: SearchParams, enabled = true) {
   return useQuery({
     queryKey: ['search', 'users', params],
     queryFn: async (): Promise<UserSearchResponse> => {
-      const queryParams: Record<string, string | number> = {};
-
-      if (params.q) queryParams.q = params.q;
-      if (params.status) queryParams.status = params.status;
-      if (params.age_range) queryParams.age_range = params.age_range;
-      if (params.cursor) queryParams.cursor = params.cursor;
-      if (params.limit) queryParams.limit = params.limit;
-
-      const response = await customInstance<{ data: UserSearchResponse }>('/api/v1/search/users', {
-        params: queryParams,
+      const response = await searchUsersApiV1SearchUsersGet({
+        ...(params.q && { q: params.q }),
+        ...(params.status && { status: params.status }),
+        ...(params.age_range && { age_range: params.age_range }),
+        ...(params.cursor && { cursor: params.cursor }),
+        ...(params.limit != null && { limit: params.limit }),
       });
-
-      return response.data;
+      if (response.status !== 200) {
+        throw new Error('Failed to search users');
+      }
+      return response.data as unknown as UserSearchResponse;
     },
     enabled,
     staleTime: 2 * 60 * 1000, // 2 minutes

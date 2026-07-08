@@ -23,7 +23,7 @@ fix:
 
 # Test
 test:
-	uv run --with pytest --with pytest-asyncio pytest tests -v
+	uv run --with pytest --with pytest-asyncio --with aiosqlite pytest tests -v
 
 # Migration実行
 migrate:

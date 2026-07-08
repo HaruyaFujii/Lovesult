@@ -11,6 +11,12 @@ export function usePullToRefresh({ onRefresh, threshold = 80 }: Options) {
   const startY = useRef<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  // 呼び出し側が毎レンダー新規関数を渡してもリスナー再登録が起きないよう ref に保持
+  const onRefreshRef = useRef(onRefresh);
+  useEffect(() => {
+    onRefreshRef.current = onRefresh;
+  }, [onRefresh]);
+
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -38,7 +44,7 @@ export function usePullToRefresh({ onRefresh, threshold = 80 }: Options) {
     const handleTouchEnd = async () => {
       if (pullDistance >= threshold && !isRefreshing) {
         setIsRefreshing(true);
-        await onRefresh();
+        await onRefreshRef.current();
         setIsRefreshing(false);
       }
       setPullDistance(0);
@@ -54,7 +60,8 @@ export function usePullToRefresh({ onRefresh, threshold = 80 }: Options) {
       container.removeEventListener('touchmove', handleTouchMove);
       container.removeEventListener('touchend', handleTouchEnd);
     };
-  }, [isRefreshing, pullDistance, threshold, onRefresh]);
+    // onRefresh は ref 経由で参照するため依存に含めない
+  }, [isRefreshing, pullDistance, threshold]);
 
   return {
     containerRef,

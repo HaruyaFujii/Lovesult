@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { customInstance } from '@/lib/api/customInstance';
+import { getUsers } from '@/lib/api/generated/endpoints/users/users';
 
 export interface User {
   id: string;
@@ -20,12 +20,19 @@ export interface UsersResponse {
   total: number;
 }
 
+/**
+ * queryKey 統一規約:
+ *   ['users'] : ユーザー一覧
+ */
 export function useUsers() {
   return useQuery({
     queryKey: ['users'],
     queryFn: async (): Promise<UsersResponse> => {
-      const response = await customInstance<{ data: UsersResponse }>('/api/v1/users');
-      return response.data;
+      const response = await getUsers();
+      if (response.status !== 200) {
+        throw new Error('Failed to fetch users');
+      }
+      return response.data as unknown as UsersResponse;
     },
     staleTime: 5 * 60 * 1000, // 5分間キャッシュ
   });

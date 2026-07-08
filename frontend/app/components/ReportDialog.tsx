@@ -51,7 +51,7 @@ export function ReportDialog({
       report_type: string;
       reason: string;
     }) => {
-      const response = await customInstance<any>('/api/v1/reports', {
+      const response = await customInstance<unknown>('/api/v1/reports', {
         method: 'POST',
         data,
       });
@@ -75,7 +75,7 @@ export function ReportDialog({
     createReportMutation.mutate({
       target_type: targetType,
       target_id: targetId,
-      report_type: reportType as any,
+      report_type: reportType,
       reason: reason.trim(),
     });
   };

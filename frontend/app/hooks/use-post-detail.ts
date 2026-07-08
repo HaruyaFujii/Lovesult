@@ -1,8 +1,17 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { createClient } from '@/lib/supabase/client';
+import { toast } from 'sonner';
 import { Post } from '@/types';
+import {
+  getPost as getPostApi,
+  updatePost as updatePostApi,
+  deletePost as deletePostApi,
+} from '@/lib/api/generated/endpoints/posts/posts';
 
+/**
+ * queryKey 統一規約:
+ *   ['post', postId]
+ */
 export const usePost = (postId: string) => {
   const queryClient = useQueryClient();
   const [optimisticPost, setOptimisticPost] = useState<Post | null>(null);
@@ -16,54 +25,26 @@ export const usePost = (postId: string) => {
   } = useQuery({
     queryKey: ['post', postId],
     queryFn: async () => {
-      const supabase = createClient();
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      const response = await fetch(`/api/v1/posts/${postId}`, {
-        headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {},
-      });
-
-      if (!response.ok) {
+      const response = await getPostApi(postId);
+      if (response.status !== 200) {
         throw new Error('Failed to fetch post');
       }
-
-      const postData = await response.json();
-      return postData as Post;
+      return response.data as unknown as Post;
     },
     enabled: !!postId,
-    staleTime: 0, // Always fetch fresh data
-    gcTime: 0, // Don't garbage collect (replaces cacheTime)
-    refetchOnMount: 'always', // Force refetch on mount
-    refetchOnWindowFocus: true, // Refetch on window focus
+    staleTime: 30_000,
   });
 
   // Update post mutation
   const updatePostMutation = useMutation({
     mutationFn: async (content: string) => {
-      const supabase = createClient();
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      const response = await fetch(`/api/v1/posts/${postId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session?.access_token}`,
-        },
-        body: JSON.stringify({ content }),
-      });
-
-      if (!response.ok) {
+      const response = await updatePostApi(postId, { content });
+      if (response.status !== 200) {
         throw new Error('Failed to update post');
       }
-
-      return response.json();
+      return response.data;
     },
     onMutate: async (content) => {
-      // Optimistic update
       if (post) {
         const updatedPost = { ...post, content };
         setOptimisticPost(updatedPost);
@@ -75,36 +56,29 @@ export const usePost = (postId: string) => {
       queryClient.setQueryData(['post', postId], data);
       queryClient.invalidateQueries({ queryKey: ['posts'] });
     },
-    onError: (error, variables, context) => {
+    onError: (_error, _variables, context) => {
       // Rollback on error
       if (context?.previousPost) {
         setOptimisticPost(null);
       }
+      toast.error('投稿の更新に失敗しました');
     },
   });
 
   // Delete post mutation
   const deletePostMutation = useMutation({
     mutationFn: async () => {
-      const supabase = createClient();
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      const response = await fetch(`/api/v1/posts/${postId}`, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${session?.access_token}`,
-        },
-      });
-
-      if (!response.ok) {
+      const response = await deletePostApi(postId);
+      if (response.status >= 300) {
         throw new Error('Failed to delete post');
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['posts'] });
       queryClient.removeQueries({ queryKey: ['post', postId] });
+    },
+    onError: () => {
+      toast.error('投稿の削除に失敗しました');
     },
   });
 

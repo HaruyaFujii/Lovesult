@@ -29,7 +29,7 @@ export function NotificationBell() {
 
   // ページ表示時に一度データを取得
   useEffect(() => {
-    queryClient.invalidateQueries({ queryKey: ['/api/v1/notifications/unread-count'] });
+    queryClient.invalidateQueries({ queryKey: ['notifications', 'unread-count'] });
   }, [queryClient]);
 
   // 未読数を取得
@@ -42,6 +42,7 @@ export function NotificationBell() {
 
   const markAllAsReadMutation = useMarkAllNotificationsAsRead();
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleNotificationClick = async (notification: any) => {
     // 通知を既読にする
     if (!notification.is_read) {
@@ -75,6 +76,7 @@ export function NotificationBell() {
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const getNotificationMessage = (notification: any) => {
     switch (notification.type) {
       case 'like':
@@ -93,12 +95,12 @@ export function NotificationBell() {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" className="relative">
           <Bell className="h-5 w-5" />
-          {unreadData?.data?.unread_count && unreadData.data.unread_count > 0 && (
+          {unreadData?.unread_count && unreadData.unread_count > 0 && (
             <Badge
               variant="destructive"
               className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center"
             >
-              {unreadData.data.unread_count > 99 ? '99+' : unreadData.data.unread_count}
+              {unreadData.unread_count > 99 ? '99+' : unreadData.unread_count}
             </Badge>
           )}
         </Button>
@@ -106,7 +108,7 @@ export function NotificationBell() {
       <DropdownMenuContent align="end" className="w-80">
         <div className="flex items-center justify-between p-2 border-b">
           <h3 className="font-semibold">通知</h3>
-          {unreadData?.data?.unread_count && unreadData.data.unread_count > 0 && (
+          {unreadData?.unread_count && unreadData.unread_count > 0 && (
             <Button
               variant="ghost"
               size="sm"
@@ -118,12 +120,13 @@ export function NotificationBell() {
           )}
         </div>
         <ScrollArea className="h-96">
-          {!notificationsData?.data ||
-          !('notifications' in notificationsData.data) ||
-          notificationsData.data.notifications.length === 0 ? (
+          {!notificationsData ||
+          !('notifications' in notificationsData) ||
+          notificationsData.notifications.length === 0 ? (
             <div className="p-4 text-center text-muted-foreground">通知はありません</div>
           ) : (
-            notificationsData.data.notifications.map((notification: any) => (
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            notificationsData.notifications.map((notification: any) => (
               <DropdownMenuItem
                 key={notification.id}
                 className="p-3 cursor-pointer"

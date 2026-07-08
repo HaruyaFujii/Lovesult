@@ -47,7 +47,7 @@ export function useConversations(cursor?: string, limit: number = 20) {
   return useQuery({
     queryKey: ['conversations', cursor, limit],
     queryFn: async (): Promise<ConversationListResponse> => {
-      const params: any = { limit };
+      const params: Record<string, string | number> = { limit };
       if (cursor) params.cursor = cursor;
 
       const response = await customInstance<{ data: ConversationListResponse }>(
@@ -78,7 +78,7 @@ export function useMessages(conversationId: string, cursor?: string, limit: numb
   return useQuery({
     queryKey: ['messages', conversationId, cursor, limit],
     queryFn: async (): Promise<MessageListResponse> => {
-      const params: any = { limit };
+      const params: Record<string, string | number> = { limit };
       if (cursor) params.cursor = cursor;
 
       const response = await customInstance<{ data: MessageListResponse }>(

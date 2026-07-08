@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { PullToRefreshContainer } from '@/components/layout/PullToRefreshContainer';
+import { EmptyState } from '@/components/common/EmptyState';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Bell, Heart, MessageCircle, Users, Star } from 'lucide-react';
@@ -127,11 +128,11 @@ export default function NotificationsPage() {
         <div className="pb-20">
           <div className="bg-white">
             {notifications.length === 0 ? (
-              <div className="text-center py-12">
-                <Bell className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-500 text-lg font-medium">通知はありません</p>
-                <p className="text-gray-400 text-sm mt-2">新しい通知があるとここに表示されます</p>
-              </div>
+              <EmptyState
+                icon={Bell}
+                title="通知はありません"
+                description="新しい通知があるとここに表示されます"
+              />
             ) : (
               <div className="divide-y border-gray-200">
                 {notifications.map((notification) => (

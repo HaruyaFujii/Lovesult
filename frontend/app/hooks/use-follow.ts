@@ -1,69 +1,63 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { customInstance } from '@/lib/api/customInstance';
+import { toast } from 'sonner';
+import {
+  followUser as followUserApi,
+  unfollowUser as unfollowUserApi,
+  getFollowStatus,
+} from '@/lib/api/generated/endpoints/follows/follows';
 
-interface FollowResponse {
-  success: boolean;
-  message?: string;
-}
+/**
+ * queryKey 統一規約:
+ *   ['follow', 'status', userId] : フォロー状態
+ *   ['follow', 'followers', userId] : フォロワー一覧
+ *   ['follow', 'following', userId] : フォロー中一覧
+ */
 
 export const useFollow = () => {
   const queryClient = useQueryClient();
 
+  const invalidateAfterFollowChange = (targetUserId: string) => {
+    // フォロー状態
+    queryClient.invalidateQueries({ queryKey: ['follow', 'status', targetUserId] });
+    // 対象ユーザーおよび自分のプロフィール（フォロワー数・フォロー数の再取得）
+    queryClient.invalidateQueries({ queryKey: ['user', targetUserId] });
+    queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+    // フォロー中タブに影響
+    queryClient.invalidateQueries({ queryKey: ['posts'] });
+  };
+
   const followMutation = useMutation({
     mutationFn: async ({ userId }: { userId: string }) => {
-      const response = await customInstance<{ data: FollowResponse }>(
-        `/api/v1/users/${userId}/follow`,
-        {
-          method: 'POST',
-        }
-      );
+      const response = await followUserApi(userId);
+      // 成功系ステータス(2xx)以外はエラー扱い
+      if (response.status >= 300) {
+        throw new Error('Failed to follow');
+      }
       return response.data;
     },
     onSuccess: (_, variables) => {
-      // フォロー状態のクエリを無効化
-      queryClient.invalidateQueries({
-        queryKey: [`/api/v1/users/${variables.userId}/follow-status`],
-      });
-      // ユーザープロフィール情報を無効化（フォロワー・フォロー数更新のため）
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/v1/users'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/v1/users/me'] });
-      // タイムラインも更新（フォロー中タブの内容が変わるため）
-      queryClient.invalidateQueries({ queryKey: ['/api/v1/posts'] });
-      // 通知カウントを更新（フォローで通知が発生する可能性があるため）
-      queryClient.invalidateQueries({ queryKey: ['/api/v1/notifications/unread-count'] });
+      invalidateAfterFollowChange(variables.userId);
     },
     onError: (error) => {
       console.error('Follow error:', error);
+      toast.error('フォローに失敗しました');
     },
   });
 
   const unfollowMutation = useMutation({
     mutationFn: async ({ userId }: { userId: string }) => {
-      const response = await customInstance<{ data: FollowResponse }>(
-        `/api/v1/users/${userId}/follow`,
-        {
-          method: 'DELETE',
-        }
-      );
+      const response = await unfollowUserApi(userId);
+      if (response.status >= 300) {
+        throw new Error('Failed to unfollow');
+      }
       return response.data;
     },
     onSuccess: (_, variables) => {
-      // フォロー状態のクエリを無効化
-      queryClient.invalidateQueries({
-        queryKey: [`/api/v1/users/${variables.userId}/follow-status`],
-      });
-      // ユーザープロフィール情報を無効化（フォロワー・フォロー数更新のため）
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/v1/users'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/v1/users/me'] });
-      // タイムラインも更新（フォロー中タブの内容が変わるため）
-      queryClient.invalidateQueries({ queryKey: ['/api/v1/posts'] });
-      // 通知カウントを更新
-      queryClient.invalidateQueries({ queryKey: ['/api/v1/notifications/unread-count'] });
+      invalidateAfterFollowChange(variables.userId);
     },
     onError: (error) => {
       console.error('Unfollow error:', error);
+      toast.error('フォロー解除に失敗しました');
     },
   });
 
@@ -77,15 +71,13 @@ export const useFollow = () => {
 
 export const useFollowStatus = (userId: string, enabled = true) => {
   return useQuery({
-    queryKey: [`/api/v1/users/${userId}/follow-status`],
+    queryKey: ['follow', 'status', userId],
     queryFn: async () => {
-      const response = await customInstance<{ data: { is_following: boolean } }>(
-        `/api/v1/users/${userId}/follow-status`,
-        {
-          method: 'GET',
-        }
-      );
-      return response;
+      const response = await getFollowStatus(userId);
+      if (response.status !== 200) {
+        throw new Error('Failed to fetch follow status');
+      }
+      return response.data as { is_following: boolean };
     },
     enabled: enabled && !!userId,
     retry: 1,

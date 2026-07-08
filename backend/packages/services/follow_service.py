@@ -9,8 +9,9 @@ from packages.services.notification_service import NotificationService
 
 class FollowService:
     def __init__(self, session: AsyncSession):
-        self.repository = FollowRepository(session)
         self.session = session
+        self.repository = FollowRepository(session)
+        self.notification_service = NotificationService(session)
 
     async def follow_user(self, follower_id: UUID, following_id: UUID) -> bool:
         # 自分自身をフォローすることはできない
@@ -29,8 +30,7 @@ class FollowService:
         await self.repository.increment_follow_counts(follower_id, following_id)
 
         # 通知を作成
-        notification_service = NotificationService(self.session)
-        await notification_service.create_follow_notification(following_id, follower_id)
+        await self.notification_service.create_follow_notification(following_id, follower_id)
 
         return True
 

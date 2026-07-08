@@ -11,7 +11,6 @@ export default defineConfig({
       schemas: './app/lib/api/generated/models',
       client: 'react-query',
       mock: false,
-      prettier: true,
     },
     hooks: {
       afterAllFilesWrite: 'prettier --write',

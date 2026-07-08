@@ -1,75 +1,29 @@
-import {
-  useGetPosts,
-  useCreatePost,
-  useGetPost,
-  useUpdatePost,
-} from '@/lib/api/generated/endpoints/posts/posts';
-import { useMutation } from '@tanstack/react-query';
-import { customInstance } from '@/lib/api/customInstance';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { deletePost } from '@/lib/api/generated/endpoints/posts/posts';
 
-export const useTimeline = (status?: string, limit = 20) => {
-  return useGetPosts(
-    {
-      ...(status && { status }),
-      limit,
-    },
-    {
-      query: {
-        retry: 1,
-        staleTime: 2 * 60 * 1000, // 2 minutes
-      },
-    }
-  );
-};
-
-export const usePost = (postId: string, enabled = true) => {
-  return useGetPost(postId, {
-    query: {
-      enabled: enabled && !!postId,
-      retry: 1,
-      staleTime: 5 * 60 * 1000, // 5 minutes
-    },
-  });
-};
-
-export const useCreatePostMutation = () => {
-  return useCreatePost({
-    mutation: {
-      onSuccess: () => {
-        // 投稿作成成功
-      },
-      onError: (error) => {
-        // 投稿作成失敗
-        console.error('Failed to create post:', error);
-      },
-      // 重複リクエスト防止
-      retry: false,
-    },
-  });
-};
-
-export const useUpdatePostMutation = () => {
-  return useUpdatePost({
-    mutation: {
-      onSuccess: () => {},
-      onError: (error) => {
-        console.error('Failed to update post:', error);
-      },
-    },
-  });
-};
-
+/**
+ * 投稿削除ミューテーション。
+ * 削除後、統一 queryKey `['posts']` `['post', id]` を無効化する。
+ */
 export const useDeletePostMutation = () => {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: async ({ postId }: { postId: string }) => {
-      const response = await customInstance<any>(`/api/v1/posts/${postId}`, {
-        method: 'DELETE',
-      });
+      const response = await deletePost(postId);
+      if (response.status >= 300) {
+        throw new Error('Failed to delete post');
+      }
       return response;
     },
-    onSuccess: () => {},
+    onSuccess: (_data, { postId }) => {
+      queryClient.invalidateQueries({ queryKey: ['posts'] });
+      queryClient.removeQueries({ queryKey: ['post', postId] });
+    },
     onError: (error) => {
       console.error('Failed to delete post:', error);
+      toast.error('投稿の削除に失敗しました');
     },
   });
 };

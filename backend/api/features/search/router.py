@@ -3,7 +3,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.core.dependencies import get_current_user_id_optional, get_db
+from api.core.dependencies import get_db, get_optional_current_user_id
 
 from .schemas import PostSearchResponse, SearchFilters, UserSearchResponse
 from .usecase import SearchUseCase
@@ -14,7 +14,7 @@ router = APIRouter(tags=["search"])
 @router.get("/search/posts", response_model=PostSearchResponse)
 async def search_posts(
     db: AsyncSession = Depends(get_db),
-    current_user_id: UUID | None = Depends(get_current_user_id_optional),
+    current_user_id: UUID | None = Depends(get_optional_current_user_id),
     q: str | None = Query(None, description="検索クエリ"),
     status: str | None = Query(None, description="ステータスフィルター"),
     age_range: str | None = Query(None, description="年齢範囲フィルター"),
@@ -45,7 +45,7 @@ async def search_posts(
 @router.get("/search/users", response_model=UserSearchResponse)
 async def search_users(
     db: AsyncSession = Depends(get_db),
-    current_user_id: UUID | None = Depends(get_current_user_id_optional),
+    current_user_id: UUID | None = Depends(get_optional_current_user_id),
     q: str | None = Query(None, description="検索クエリ"),
     status: str | None = Query(None, description="ステータスフィルター"),
     age_range: str | None = Query(None, description="年齢範囲フィルター"),

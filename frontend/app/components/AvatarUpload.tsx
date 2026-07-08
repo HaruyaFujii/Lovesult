@@ -15,6 +15,7 @@ import {
 import { Camera, Upload, X } from 'lucide-react';
 import { customInstance } from '@/lib/api/customInstance';
 import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 interface AvatarUploadProps {
   currentAvatarUrl?: string;
@@ -44,16 +45,19 @@ export function AvatarUpload({ currentAvatarUrl, userName, onAvatarUpdate }: Ava
 
     // ファイルサイズチェック（5MB）
     if (file.size > 5 * 1024 * 1024) {
+      toast.error('ファイルサイズは5MB以下にしてください');
       return;
     }
 
     // ファイルタイプチェック
     if (!file.type.startsWith('image/')) {
+      toast.error('画像ファイルを選択してください');
       return;
     }
 
     // SVGファイルをブロック
     if (file.type === 'image/svg+xml' || file.name.toLowerCase().endsWith('.svg')) {
+      toast.error('SVG形式の画像はご利用いただけません');
       return;
     }
 
@@ -94,13 +98,16 @@ export function AvatarUpload({ currentAvatarUrl, userName, onAvatarUpdate }: Ava
       onAvatarUpdate?.(newAvatarUrl);
 
       // クエリを無効化してデータを再取得（リロードなし）
-      queryClient.invalidateQueries({ queryKey: ['/api/v1/users/me'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/v1/posts'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/v1/users'] });
-    } catch (error: any) {
+      queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+      queryClient.invalidateQueries({ queryKey: ['posts'] });
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      toast.success('アバター画像を更新しました');
+    } catch (error: unknown) {
       console.error('Avatar upload error:', error);
-
-      // エラーハンドリングは必要に応じて追加
+      const err = error as { data?: { detail?: string }; message?: string };
+      const message =
+        err?.data?.detail || err?.message || 'アバター画像のアップロードに失敗しました';
+      toast.error(message);
     } finally {
       setIsUploading(false);
     }

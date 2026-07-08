@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 from uuid import UUID
 
 from sqlalchemy import and_, func, select
@@ -5,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from packages.models.like import Like
 from packages.models.post import Post
+from packages.models.reply_like import ReplyLike
 
 
 class LikeRepository:
@@ -37,6 +39,34 @@ class LikeRepository:
         )
         count = result.scalar()
         return count > 0
+
+    async def get_liked_post_ids(
+        self, user_id: UUID, post_ids: Iterable[UUID]
+    ) -> set[UUID]:
+        """バッチ版 is_liked: 与えられた post_ids のうち user_id がいいねしているIDだけをsetで返す"""
+        ids = list(post_ids)
+        if not ids:
+            return set()
+        result = await self.session.execute(
+            select(Like.post_id).where(
+                and_(Like.user_id == user_id, Like.post_id.in_(ids))
+            )
+        )
+        return {row[0] for row in result.all()}
+
+    async def get_liked_reply_ids(
+        self, user_id: UUID, reply_ids: Iterable[UUID]
+    ) -> set[UUID]:
+        """バッチ版 is_reply_liked: reply_ids のうち user_id がいいねしているIDのset"""
+        ids = list(reply_ids)
+        if not ids:
+            return set()
+        result = await self.session.execute(
+            select(ReplyLike.reply_id).where(
+                and_(ReplyLike.user_id == user_id, ReplyLike.reply_id.in_(ids))
+            )
+        )
+        return {row[0] for row in result.all()}
 
     async def increment_like_count(self, post_id: UUID) -> None:
         # 投稿のいいね数を増やす

@@ -4,22 +4,25 @@ Test configuration and fixtures
 
 import asyncio
 from collections.abc import AsyncGenerator
+from datetime import UTC, datetime, timedelta
 from uuid import uuid4
 
 import pytest
 import pytest_asyncio
-from httpx import AsyncClient
+from httpx import ASGITransport, AsyncClient
+from jose import jwt as jose_jwt
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.pool import StaticPool
 from sqlmodel import SQLModel
 
-from api.core.dependencies import get_session
+from api.config import get_settings
+from api.core.dependencies import get_db
 from api.main import app
 from packages.models.post import Post
 from packages.models.user import AgeRange, Gender, User, UserStatus
 
-# Test database setup
-TEST_DATABASE_URL = "sqlite+aiosqlite:///./test.db"
+# Test database setup: in-memory SQLite is preferred so a stale file cannot pollute runs.
+TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 
 
 @pytest_asyncio.fixture
@@ -53,20 +56,28 @@ async def async_session(async_engine) -> AsyncGenerator[AsyncSession, None]:
 
 @pytest_asyncio.fixture
 async def override_get_session(async_session):
-    """Override the get_session dependency"""
+    """Override the FastAPI DB dependency so tests share the fixture session.
 
-    def _override():
-        return async_session
+    Routers depend on ``get_db``, which is an async generator. The override must
+    return the same async-generator shape or FastAPI will raise on ``__aiter__``.
+    """
 
-    app.dependency_overrides[get_session] = _override
+    async def _override() -> AsyncGenerator[AsyncSession, None]:
+        yield async_session
+
+    app.dependency_overrides[get_db] = _override
     yield
     app.dependency_overrides.clear()
 
 
 @pytest_asyncio.fixture
 async def client(override_get_session) -> AsyncGenerator[AsyncClient, None]:
-    """Create test client"""
-    async with AsyncClient(app=app, base_url="http://test") as ac:
+    """Create test client.
+
+    httpx>=0.28 removed the ``app=`` kwarg from ``AsyncClient``; the ASGI app
+    must be wired via ``ASGITransport`` instead.
+    """
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         yield ac
 
 
@@ -132,9 +143,21 @@ async def test_post(async_session: AsyncSession, test_user: User) -> Post:
 
 
 @pytest.fixture
-def auth_headers():
-    """Mock authorization headers"""
-    return {"Authorization": "Bearer test-token"}
+def auth_headers(test_user: User):
+    """Authorization headers with a locally-signed JWT for the test user.
+
+    verify_jwt_token now performs local HS256 decoding, so we need to hand it a
+    token signed with the configured supabase_jwt_secret. Audience must match.
+    """
+    settings = get_settings()
+    payload = {
+        "sub": str(test_user.id),
+        "email": test_user.email,
+        "aud": "authenticated",
+        "exp": datetime.now(tz=UTC) + timedelta(hours=1),
+    }
+    token = jose_jwt.encode(payload, settings.supabase_jwt_secret, algorithm="HS256")
+    return {"Authorization": f"Bearer {token}"}
 
 
 # Event loop fixture for pytest-asyncio

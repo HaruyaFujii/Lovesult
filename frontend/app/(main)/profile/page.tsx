@@ -2,33 +2,45 @@
 
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { useCurrentUser } from '@/hooks/use-user';
 import { useMyPersonalityResult } from '@/hooks/use-personality';
+import { useUserPosts } from '@/hooks/use-user-posts';
+import { useDeletePostMutation } from '@/hooks/use-post';
 import { AvatarUpload } from '@/components/AvatarUpload';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Calendar, Users, MessageCircle, Settings, Heart, Star } from 'lucide-react';
-import { formatDistanceToNowJST } from '@/lib/utils/date';
-import {
-  getUserStatusLabel,
-  getGenderLabel,
-  getAgeRangeLabel,
-  getPersonalityTypeLabel,
-} from '@/lib/utils/enum-labels';
+import { Skeleton } from '@/components/ui/skeleton';
+import { MessageCircle } from 'lucide-react';
+import PostCard from '@/components/post/PostCard';
+import PostCardSkeleton from '@/components/post/PostCardSkeleton';
+import { EmptyState } from '@/components/common/EmptyState';
+import { getUserStatusLabel, getGenderLabel, getAgeRangeLabel } from '@/lib/utils/enum-labels';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { PullToRefreshContainer } from '@/components/layout/PullToRefreshContainer';
+import { DeleteConfirmModal } from '@/components/ui/DeleteConfirmModal';
 
 export default function ProfilePage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const deletePost = useDeletePostMutation();
 
   const { data: profileData, isLoading, error } = useCurrentUser(!!user && !authLoading);
   const { data: personalityResult } = useMyPersonalityResult();
   // 実際のレスポンスは直接ユーザーオブジェクトが返される
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const profile = profileData as any;
+  const userId: string | undefined = profile?.id;
+
+  const userPostsQuery = useUserPosts(userId || '', { limit: 20 }, !!userId);
+  const posts = userPostsQuery.data?.posts || [];
+  const postsLoading = userPostsQuery.isLoading;
+
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [postToDelete, setPostToDelete] = useState<string | null>(null);
 
   // 認証チェックをuseEffectで行う
   useEffect(() => {
@@ -37,238 +49,219 @@ export default function ProfilePage() {
     }
   }, [authLoading, user, router]);
 
-  if (authLoading) {
-    return <div className="text-center py-8">認証確認中...</div>;
-  }
+  const handleRefresh = async () => {
+    await Promise.all([userPostsQuery.refetch()]);
+  };
 
-  if (!user) {
-    return <div className="text-center py-8">リダイレクト中...</div>;
-  }
+  const handleDeletePost = (postId: string) => {
+    setPostToDelete(postId);
+    setDeleteModalOpen(true);
+  };
 
-  if (isLoading) {
-    return <div className="text-center py-8">読み込み中...</div>;
-  }
+  const confirmDeletePost = async () => {
+    if (!postToDelete) return;
+    // 楽観的更新
+    queryClient.setQueriesData({ queryKey: ['userPosts', userId] }, (old: unknown) => {
+      const oldData = old as { posts: Array<{ id: string }> } | undefined;
+      if (!oldData) return oldData;
+      return {
+        ...oldData,
+        posts: oldData.posts.filter((p) => p.id !== postToDelete),
+      };
+    });
+    try {
+      await deletePost.mutateAsync({ postId: postToDelete });
+    } catch (err) {
+      console.error('投稿の削除に失敗しました:', err);
+      await userPostsQuery.refetch();
+      toast.error('投稿の削除に失敗しました');
+    } finally {
+      setPostToDelete(null);
+    }
+  };
 
-  if (error || !profile) {
+  if (authLoading || !user || isLoading) {
     return (
-      <div className="text-center py-8">
-        <p className="text-gray-600 mb-4">プロフィールが見つかりません</p>
-        <Link
-          href="/profile/edit"
-          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-pink-600 hover:bg-pink-700"
-        >
-          プロフィールを作成
-        </Link>
+      <div className="min-h-screen flex flex-col bg-white">
+        <MobileHeader />
+        <div className="max-w-xl mx-auto w-full sm:border-x border-gray-200 bg-white pb-20">
+          <div className="px-4 pt-4">
+            <div className="flex items-start justify-between">
+              <Skeleton className="h-20 w-20 rounded-full" />
+              <Skeleton className="h-8 w-32 rounded-full" />
+            </div>
+            <div className="mt-3 space-y-2">
+              <Skeleton className="h-6 w-40 rounded" />
+              <Skeleton className="h-4 w-56 rounded" />
+              <Skeleton className="h-4 w-full rounded" />
+              <div className="flex gap-4 mt-3">
+                <Skeleton className="h-4 w-20 rounded" />
+                <Skeleton className="h-4 w-20 rounded" />
+              </div>
+            </div>
+          </div>
+          <div className="mt-4 border-b border-gray-200 px-4 py-3">
+            <Skeleton className="h-5 w-20 rounded" />
+          </div>
+          <PostCardSkeleton count={3} />
+        </div>
       </div>
     );
   }
 
+  if (error || !profile) {
+    return (
+      <div className="min-h-screen flex flex-col bg-white">
+        <MobileHeader />
+        <div className="max-w-xl mx-auto w-full sm:border-x border-gray-200 bg-white pb-20">
+          <EmptyState
+            title="プロフィールが見つかりません"
+            description="プロフィールを作成して始めましょう"
+            action={
+              <Link
+                href="/profile/edit"
+                className="inline-flex items-center rounded-full bg-pink-600 px-4 py-1.5 text-sm font-bold text-white hover:bg-pink-700"
+              >
+                プロフィールを作成
+              </Link>
+            }
+          />
+        </div>
+      </div>
+    );
+  }
+
+  const displayName = profile.name || profile.nickname || '名前未設定';
+  const followingCount = profile.following_count;
+  const followersCount = profile.followers_count;
+  const hasFollowCounts = typeof followingCount === 'number' && typeof followersCount === 'number';
+
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
-      {/* モバイルヘッダー */}
+    <div className="min-h-screen flex flex-col bg-white">
       <MobileHeader />
+      <PullToRefreshContainer onRefresh={handleRefresh}>
+        <div className="pb-20">
+          <div className="max-w-xl mx-auto sm:border-x border-gray-200 bg-white">
+            {/* ヘッダーブロック */}
+            <div className="px-4 pt-4 pb-3">
+              <div className="flex items-start justify-between gap-4">
+                <AvatarUpload
+                  currentAvatarUrl={profile?.avatar_url || ''}
+                  userName={displayName}
+                  userId={profile.id}
+                  onAvatarUpdate={() => {
+                    // 反映は AvatarUpload 側でクエリ無効化済み
+                  }}
+                />
+                <Link
+                  href="/profile/edit"
+                  className="rounded-full border border-gray-300 bg-white px-4 py-1.5 text-sm font-bold text-gray-900 transition-colors hover:bg-gray-50"
+                >
+                  プロフィールを編集
+                </Link>
+              </div>
 
-      {/* メインコンテンツ */}
-      <PullToRefreshContainer onRefresh={async () => {}}>
-        <div className="space-y-4 px-4 py-4 pb-20">
-            {/* プロフィールヘッダー */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-start gap-6">
-                  {/* プロフィール情報 - モバイル最適化 */}
-                  <div className="flex flex-col space-y-4">
-                    {/* アバターと基本情報 */}
-                    <div className="flex items-center gap-4">
-                      <AvatarUpload
-                        currentAvatarUrl={profile?.avatar_url || ''}
-                        userName={profile.name || profile.nickname}
-                        userId={profile.id}
-                        onAvatarUpdate={() => {
-                          // アバター更新後の処理（必要に応じて）
-                        }}
-                      />
-                      <div className="flex-1 min-w-0">
-                        <h1 className="text-xl font-bold text-gray-900 truncate">
-                          {profile.name || profile.nickname || '名前未設定'}
-                        </h1>
-                        <p className="text-sm text-gray-600 truncate">{profile.email}</p>
-                      </div>
-                    </div>
-
-                    {/* アクションボタン */}
-                    <div className="flex gap-2">
-                      <Button variant="outline" asChild className="flex-1">
-                        <Link href="/profile/edit">プロフィール編集</Link>
-                      </Button>
-                      <Button variant="outline" size="icon" asChild>
-                        <Link href="/settings">
-                          <Settings className="h-4 w-4" />
-                        </Link>
-                      </Button>
-                    </div>
-
-                    {/* ステータスと年代 */}
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <Badge variant="secondary">{getUserStatusLabel(profile.status)}</Badge>
-                      {profile.age_range && (
-                        <Badge variant="outline">{getAgeRangeLabel(profile.age_range)}</Badge>
-                      )}
-                      {profile.gender && (
-                        <Badge variant="outline">{getGenderLabel(profile.gender)}</Badge>
-                      )}
-                    </div>
-
-                    {/* 自己紹介 */}
-                    {profile.bio && (
-                      <p className="text-gray-700 text-sm leading-relaxed">{profile.bio}</p>
-                    )}
-
-                    {/* 統計情報 */}
-                    <div className="grid grid-cols-2 gap-2 text-sm text-gray-600">
-                      <div className="flex items-center gap-1">
-                        <MessageCircle className="h-4 w-4" />
-                        <span>{profile.posts_count || 0} 投稿</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Users className="h-4 w-4" />
-                        <span>{profile.followers_count || 0} フォロワー</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Users className="h-4 w-4" />
-                        <span>{profile.following_count || 0} フォロー中</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Calendar className="h-4 w-4" />
-                        <span>
-                          {profile.created_at && !isNaN(new Date(profile.created_at).getTime())
-                            ? formatDistanceToNowJST(profile.created_at)
-                            : '不明'}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
+              {/* 名前ブロック */}
+              <div className="mt-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h1 className="text-xl font-bold text-gray-900 truncate">{displayName}</h1>
+                  {profile.status && (
+                    <Badge variant="secondary" className="text-[11px] px-2 py-0.5">
+                      {getUserStatusLabel(profile.status)}
+                    </Badge>
+                  )}
                 </div>
-              </CardHeader>
-            </Card>
-
-            {/* 性格診断結果 */}
-            {personalityResult ? (
-              <div className="bg-gradient-to-r from-pink-50 to-purple-50 rounded-lg p-4">
-                <div className="flex items-center gap-3">
-                  <div className="text-3xl">{personalityResult.primary_type.emoji}</div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900">
-                      {personalityResult.primary_type.name}
-                    </h3>
-                    <p className="text-sm text-gray-600">恋愛タイプ診断結果</p>
-                  </div>
-                  <Button variant="outline" size="sm" asChild>
-                    <Link href="/personality/result">詳細を見る</Link>
-                  </Button>
+                <div className="mt-1 text-sm text-gray-500">
+                  {[
+                    profile.age_range && getAgeRangeLabel(profile.age_range),
+                    profile.gender && getGenderLabel(profile.gender),
+                  ]
+                    .filter(Boolean)
+                    .join(' ・ ')}
                 </div>
               </div>
-            ) : (
-              <div className="bg-gray-50 rounded-lg p-4">
-                <div className="flex items-center gap-3">
-                  <Heart className="h-8 w-8 text-pink-400" />
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900">恋愛タイプ診断</h3>
-                    <p className="text-sm text-gray-600">あなたの恋愛傾向を診断してみませんか？</p>
-                  </div>
-                  <Button asChild>
-                    <Link href="/personality">診断する</Link>
-                  </Button>
+
+              {/* bio */}
+              {profile.bio && (
+                <p className="mt-2 text-[15px] text-gray-900 whitespace-pre-wrap break-words">
+                  {profile.bio}
+                </p>
+              )}
+
+              {/* メタ行(フォロー数) */}
+              {hasFollowCounts && (
+                <div className="mt-3 flex gap-4 text-sm">
+                  <span>
+                    <span className="font-bold text-gray-900">{followingCount}</span>{' '}
+                    <span className="text-gray-500">フォロー中</span>
+                  </span>
+                  <span>
+                    <span className="font-bold text-gray-900">{followersCount}</span>{' '}
+                    <span className="text-gray-500">フォロワー</span>
+                  </span>
                 </div>
+              )}
+
+              {/* 性格診断結果(控えめ) */}
+              {personalityResult && (
+                <Link
+                  href="/personality/result"
+                  className="mt-3 flex items-center gap-2 rounded-lg bg-gradient-to-r from-pink-50 to-purple-50 px-3 py-2 text-sm transition-colors hover:from-pink-100 hover:to-purple-100"
+                >
+                  <span className="text-lg">{personalityResult.primary_type.emoji}</span>
+                  <span className="font-semibold text-gray-900">
+                    {personalityResult.primary_type.name}
+                  </span>
+                  <span className="text-xs text-gray-500 ml-auto">診断結果を見る</span>
+                </Link>
+              )}
+            </div>
+
+            {/* タブ風の見出し */}
+            <div className="flex border-b border-gray-200">
+              <div className="flex-1 py-3 text-center text-sm font-bold text-gray-900 border-b-2 border-pink-500">
+                投稿
               </div>
-            )}
+            </div>
 
-            {/* 性格診断詳細（結果がある場合のみ） */}
-            {personalityResult && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <Star className="h-5 w-5 text-yellow-500" />
-                    恋愛タイプ診断詳細
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {/* プライマリタイプ */}
-                    <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-pink-50 to-purple-50 rounded-lg">
-                      <div className="text-3xl">{personalityResult.primary_type.emoji}</div>
-                      <div className="flex-1">
-                        <h3 className="text-lg font-bold text-gray-900">
-                          {personalityResult.primary_type.name}
-                        </h3>
-                        <p className="text-sm text-gray-700 mt-1">
-                          {personalityResult.primary_type.description}
-                        </p>
-                      </div>
-                    </div>
+            {/* 投稿リスト */}
+            <div className="bg-white">
+              {posts
+                .filter((post, index, arr) => arr.findIndex((p) => p.id === post.id) === index)
+                .map((post) => (
+                  <PostCard
+                    key={post.id}
+                    post={post}
+                    showActions={true}
+                    onDelete={() => handleDeletePost(post.id)}
+                  />
+                ))}
 
-                    {/* サブタイプ */}
-                    {personalityResult.secondary_type && (
-                      <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                        <div className="text-2xl">{personalityResult.secondary_type.emoji}</div>
-                        <div>
-                          <p className="text-xs text-gray-600">サブタイプ</p>
-                          <p className="font-semibold text-sm">
-                            {personalityResult.secondary_type.name}
-                          </p>
-                        </div>
-                      </div>
-                    )}
+              {postsLoading && posts.length === 0 && <PostCardSkeleton count={3} />}
 
-                    {/* スコア */}
-                    <div>
-                      <h4 className="font-semibold mb-3 text-sm">性格スコア</h4>
-                      <div className="grid grid-cols-1 gap-2">
-                        {Object.entries(personalityResult.scores).map(([type, score]) => (
-                          <div
-                            key={type}
-                            className="flex items-center justify-between bg-gray-50 rounded p-2"
-                          >
-                            <span className="text-sm">{getPersonalityTypeLabel(type)}</span>
-                            <div className="flex items-center gap-2">
-                              <div className="w-12 bg-gray-200 rounded-full h-2">
-                                <div
-                                  className="bg-pink-500 h-2 rounded-full"
-                                  style={{ width: `${(score / 20) * 100}%` }}
-                                />
-                              </div>
-                              <span className="text-xs font-medium w-6">{score}</span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="flex gap-2">
-                      <Button variant="outline" asChild className="flex-1 text-sm">
-                        <Link href="/personality/result">詳細結果</Link>
-                      </Button>
-                      <Button variant="outline" asChild className="flex-1 text-sm">
-                        <Link href="/personality">再診断</Link>
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* アクティビティエリア */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">アクティビティ</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center text-gray-500 py-8">
-                  <p className="text-sm">投稿一覧とアクティビティは実装予定です</p>
-                </div>
-              </CardContent>
-            </Card>
+              {!postsLoading && posts.length === 0 && (
+                <EmptyState
+                  icon={MessageCircle}
+                  title="まだ投稿がありません"
+                  description="最初の投稿をしてみませんか？"
+                />
+              )}
+            </div>
+          </div>
         </div>
       </PullToRefreshContainer>
+
+      <DeleteConfirmModal
+        isOpen={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setPostToDelete(null);
+        }}
+        onConfirm={confirmDeletePost}
+        title="投稿を削除"
+        description="この投稿を削除しますか？この操作は取り消せません。"
+        isLoading={deletePost.isPending}
+      />
     </div>
   );
 }

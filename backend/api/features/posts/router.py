@@ -3,7 +3,6 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.core.cache import cache
 from api.core.dependencies import get_current_user_id, get_db, get_optional_current_user_id
 
 from .schemas import PostCreate, PostResponse, PostUpdate, RepliesResponse, TimelineResponse
@@ -21,16 +20,6 @@ async def get_posts(
     current_user_id: UUID | None = Depends(get_optional_current_user_id),
     db: AsyncSession = Depends(get_db),
 ) -> TimelineResponse:
-    # キャッシュキーの生成（ユーザーごと、パラメータごと）
-    cache_key = f"timeline:{current_user_id or 'anon'}:{status}:{tab}:{cursor}:{limit}"
-
-    # キャッシュから取得を試みる
-    cached_result = await cache.get(cache_key)
-    if cached_result:
-        # キャッシュから取得したデータをTimelineResponseに変換
-        return TimelineResponse(**cached_result)
-
-    # キャッシュにない場合はDBから取得
     usecase = PostUseCase(db)
     posts, next_cursor = await usecase.get_timeline(
         current_user_id=current_user_id,
@@ -39,13 +28,7 @@ async def get_posts(
         cursor=cursor,
         limit=limit,
     )
-
-    # 結果をキャッシュに保存（60秒）
-    result = TimelineResponse(posts=posts, next_cursor=next_cursor)
-    # UUIDを文字列に変換してJSONシリアライズ可能にする
-    await cache.set(cache_key, result.model_dump(mode="json"), ttl=60)
-
-    return result
+    return TimelineResponse(posts=posts, next_cursor=next_cursor)
 
 
 @router.post(

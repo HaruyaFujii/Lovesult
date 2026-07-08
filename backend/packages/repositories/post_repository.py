@@ -1,8 +1,8 @@
-from collections.abc import Sequence
+from collections.abc import Iterable, Sequence
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import and_, desc, select
+from sqlalchemy import and_, desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -14,6 +14,21 @@ from packages.models.user import User, UserStatus
 class PostRepository:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
+
+    async def get_reply_counts(self, post_ids: Iterable[UUID]) -> dict[UUID, int]:
+        """バッチ版リプライ数取得: 与えられた投稿IDごとの子投稿数を単一クエリで返す。
+        カウントが0の場合はキーが含まれない可能性があるので呼び出し側で0にフォールバックする。
+        """
+        ids = list(post_ids)
+        if not ids:
+            return {}
+        stmt = (
+            select(Post.parent_id, func.count(Post.id))
+            .where(Post.parent_id.in_(ids))
+            .group_by(Post.parent_id)
+        )
+        result = await self.session.execute(stmt)
+        return {row[0]: int(row[1]) for row in result.all() if row[0] is not None}
 
     async def get_by_id(self, post_id: UUID) -> Post | None:
         result = await self.session.execute(

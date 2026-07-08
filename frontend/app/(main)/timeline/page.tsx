@@ -1,10 +1,14 @@
 'use client';
 
 import { useState } from 'react';
+import { toast } from 'sonner';
+import { MessageCircle, Users } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useCurrentUser } from '@/hooks/use-user';
 import PostCard from '@/components/post/PostCard';
+import PostCardSkeleton from '@/components/post/PostCardSkeleton';
 import StatusFilter from '@/components/timeline/StatusFilter';
+import { EmptyState } from '@/components/common/EmptyState';
 import { UserStatus } from '@/types';
 import { useQueryClient } from '@tanstack/react-query';
 import { usePosts } from '@/hooks/use-posts';
@@ -69,8 +73,7 @@ export default function TimelinePage() {
       console.error('投稿の削除に失敗しました:', error);
       // エラー時は元に戻すため再取得
       await postsQuery.refetch();
-
-      // エラーは無視（削除モーダル内でエラーハンドリング）
+      toast.error('投稿の削除に失敗しました');
     } finally {
       setPostToDelete(null);
     }
@@ -88,88 +91,82 @@ export default function TimelinePage() {
       {/* メインコンテンツ */}
       <PullToRefreshContainer onRefresh={handleRefresh}>
         <div className="pb-20">
-          {/* タブフィルター */}
-          <div className="bg-white border-b border-gray-200">
-            <div className="flex">
-              <button
-                onClick={() => handleTabChange('recommended')}
-                className={`
-                  flex-1 py-3 text-sm font-medium text-center
-                  border-b-2 transition-colors duration-200
-                  ${
-                    activeTab === 'recommended'
-                      ? 'border-pink-500 text-pink-500'
-                      : 'border-transparent text-gray-500'
-                  }
-                `}
-              >
-                おすすめ
-              </button>
-              <button
-                onClick={() => handleTabChange('following')}
-                className={`
-                  flex-1 py-3 text-sm font-medium text-center
-                  border-b-2 transition-colors duration-200
-                  ${
-                    activeTab === 'following'
-                      ? 'border-pink-500 text-pink-500'
-                      : 'border-transparent text-gray-500'
-                  }
-                `}
-              >
-                フォロー中
-              </button>
+          <div className="max-w-xl mx-auto sm:border-x border-gray-200 bg-white">
+            {/* タブフィルター */}
+            <div className="bg-white border-b border-gray-200">
+              <div className="flex">
+                <button
+                  onClick={() => handleTabChange('recommended')}
+                  className={`
+                    flex-1 py-3 text-sm font-medium text-center
+                    border-b-2 transition-colors duration-200
+                    ${
+                      activeTab === 'recommended'
+                        ? 'border-pink-500 text-pink-500'
+                        : 'border-transparent text-gray-500'
+                    }
+                  `}
+                >
+                  おすすめ
+                </button>
+                <button
+                  onClick={() => handleTabChange('following')}
+                  className={`
+                    flex-1 py-3 text-sm font-medium text-center
+                    border-b-2 transition-colors duration-200
+                    ${
+                      activeTab === 'following'
+                        ? 'border-pink-500 text-pink-500'
+                        : 'border-transparent text-gray-500'
+                    }
+                  `}
+                >
+                  フォロー中
+                </button>
+              </div>
             </div>
-          </div>
 
-          {/* ステータスフィルター */}
-          <div className="border-b border-gray-200 bg-white px-4 py-3">
-            <StatusFilter currentStatus={statusFilter} onChange={handleStatusFilterChange} />
-          </div>
+            {/* ステータスフィルター */}
+            <div className="border-b border-gray-200 bg-white px-4 py-3">
+              <StatusFilter currentStatus={statusFilter} onChange={handleStatusFilterChange} />
+            </div>
 
-          {/* 投稿リスト */}
-          <div className="bg-white">
-            {posts
-              .filter((post, index, arr) => arr.findIndex((p) => p.id === post.id) === index)
-              .map((post, index) => {
-                const isMyPost = currentUser && post.user?.id === currentUser.id;
-                const isOptimistic = (post as any)._optimistic;
-                return (
-                  <div key={post.id} className={index > 0 ? 'border-t border-gray-200' : ''}>
+            {/* 投稿リスト */}
+            <div className="bg-white">
+              {posts
+                .filter((post, index, arr) => arr.findIndex((p) => p.id === post.id) === index)
+                .map((post) => {
+                  const isMyPost = currentUser && post.user?.id === currentUser.id;
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  const isOptimistic = (post as any)._optimistic;
+                  return (
                     <PostCard
+                      key={post.id}
                       post={post}
                       showActions={Boolean(isMyPost && !isOptimistic)}
                       onDelete={() => handleDeletePost(post.id)}
                     />
-                  </div>
-                );
-              })}
+                  );
+                })}
 
-            {loading && (
-              <div className="text-center py-12 border-t border-gray-200">
-                <div className="inline-flex items-center gap-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-pink-600"></div>
-                  <p className="text-gray-500 text-sm">読み込み中...</p>
-                </div>
-              </div>
-            )}
+              {loading && posts.length === 0 && <PostCardSkeleton count={5} />}
 
-            {!loading && posts.length === 0 && (
-              <div className="text-center py-12 border-t border-gray-200">
-                <div className="max-w-sm mx-auto px-4">
-                  <p className="text-gray-500 text-lg font-medium mb-2">
-                    {activeTab === 'following'
+              {!loading && posts.length === 0 && (
+                <EmptyState
+                  icon={activeTab === 'following' ? Users : MessageCircle}
+                  title={
+                    activeTab === 'following'
                       ? 'フォロー中のユーザーの投稿がありません'
-                      : 'まだ投稿がありません'}
-                  </p>
-                  <p className="text-gray-400 text-sm">
-                    {activeTab === 'following'
+                      : 'まだ投稿がありません'
+                  }
+                  description={
+                    activeTab === 'following'
                       ? 'ユーザーをフォローして投稿を見てみましょう'
-                      : '右下のボタンから投稿してみませんか？'}
-                  </p>
-                </div>
-              </div>
-            )}
+                      : '右下のボタンから投稿してみませんか？'
+                  }
+                />
+              )}
+            </div>
           </div>
         </div>
       </PullToRefreshContainer>

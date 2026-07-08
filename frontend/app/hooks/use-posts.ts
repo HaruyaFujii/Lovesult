@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
-import { customInstance } from '@/lib/api/customInstance';
+import { toast } from 'sonner';
+import { getPosts, createPost } from '@/lib/api/generated/endpoints/posts/posts';
 import { Post, User } from '@/types';
 
 export interface PostsResponse {
@@ -8,6 +9,11 @@ export interface PostsResponse {
   next_cursor?: string;
 }
 
+/**
+ * queryKey 統一規約:
+ *   ['posts'] : 全リスト（プレフィックス）
+ *   ['posts', params] : パラメータごとのキャッシュ
+ */
 export function usePosts(params?: {
   limit?: number;
   cursor?: string;
@@ -17,18 +23,16 @@ export function usePosts(params?: {
   return useQuery({
     queryKey: ['posts', params],
     queryFn: async (): Promise<PostsResponse> => {
-      const queryParams: Record<string, string | number> = {};
-
-      if (params?.limit) queryParams.limit = params.limit;
-      if (params?.cursor) queryParams.cursor = params.cursor;
-      if (params?.status) queryParams.status = params.status;
-      if (params?.tab) queryParams.tab = params.tab;
-
-      const response = await customInstance<{ data: PostsResponse }>('/api/v1/posts', {
-        params: queryParams,
+      const response = await getPosts({
+        ...(params?.limit != null && { limit: params.limit }),
+        ...(params?.cursor && { cursor: params.cursor }),
+        ...(params?.status && { status: params.status }),
+        ...(params?.tab && { tab: params.tab }),
       });
-
-      return response.data;
+      if (response.status !== 200) {
+        throw new Error('Failed to fetch posts');
+      }
+      return response.data as unknown as PostsResponse;
     },
     staleTime: 2 * 60 * 1000, // 2 minutes
   });
@@ -58,12 +62,11 @@ export function useCreatePost(currentUser?: User) {
 
   return useMutation({
     mutationFn: async (data: { content: string }) => {
-      const response = await customInstance<{ data: Post }>('/api/v1/posts', {
-        method: 'POST',
-        data: data,
-      });
-
-      return response.data;
+      const response = await createPost({ content: data.content });
+      if (response.status !== 201) {
+        throw new Error('Failed to create post');
+      }
+      return response.data as unknown as Post;
     },
     onMutate: async (newPost) => {
       // 進行中のクエリをキャンセル
@@ -102,13 +105,14 @@ export function useCreatePost(currentUser?: User) {
 
       return { previousPosts };
     },
-    onError: (err, newPost, context) => {
+    onError: (_err, _newPost, context) => {
       // エラー時は元の状態に戻す
       if (context?.previousPosts) {
         context.previousPosts.forEach(([queryKey, data]) => {
           queryClient.setQueryData(queryKey, data);
         });
       }
+      toast.error('投稿に失敗しました');
     },
     onSuccess: () => {
       // 成功時は実際のデータで更新

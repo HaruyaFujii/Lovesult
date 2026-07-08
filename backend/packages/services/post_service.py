@@ -1,30 +1,28 @@
+from collections.abc import Sequence
 from datetime import datetime
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import func, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from packages.models.post import Post
+from packages.repositories.like_repository import LikeRepository
 from packages.repositories.post_repository import PostRepository
 from packages.services.like_service import LikeService
 from packages.services.notification_service import NotificationService
+from packages.services.user_service import UserService
 
 
 class PostService:
     def __init__(self, session: AsyncSession):
+        self.session = session
         self.repository = PostRepository(session)
+        self.like_repository = LikeRepository(session)
         self.like_service = LikeService(session)
         self.notification_service = NotificationService(session)
-        self.session = session
-
-    async def _get_replies_count(self, post_id: UUID) -> int:
-        """投稿のリプライ数を取得"""
-        result = await self.session.execute(
-            select(func.count(Post.id)).where(Post.parent_id == post_id)  # type: ignore
-        )
-        return result.scalar() or 0
+        self.user_service = UserService(session)
 
     async def create_post(self, user_id: UUID, content: str, parent_id: UUID | None = None) -> Post:
         # コンテンツフィルタリング - temporarily disabled due to banned_words table schema issue
@@ -35,16 +33,14 @@ class PostService:
         #     raise ValueError("不適切な表現が含まれているため投稿できません")
 
         # ユーザー情報を取得してスナップショットとして保存
-        from packages.services.user_service import UserService
-
-        user_service = UserService(self.repository.session)
-        user = await user_service.get_user(user_id)
+        user = await self.user_service.get_user(user_id)
 
         if not user:
             raise ValueError("User not found")
 
         # Determine root_id for replies
         root_id = None
+        parent_post: Post | None = None
         if parent_id:
             parent_post = await self.repository.get_by_id(parent_id)
             if not parent_post:
@@ -91,25 +87,8 @@ class PostService:
         if not post:
             return None
 
-        # Postオブジェクトを辞書に変換
-        post_dict = post.model_dump()
-
-        # ユーザー情報を手動で追加
-        if post.user:
-            post_dict["user"] = post.user.model_dump()
-        else:
-            post_dict["user"] = None
-
-        # いいね状態を追加
-        if current_user_id:
-            post_dict["is_liked"] = await self.like_service.is_liked(current_user_id, post_id)
-        else:
-            post_dict["is_liked"] = False
-
-        # リプライ数を追加
-        post_dict["replies_count"] = await self._get_replies_count(post_id)
-
-        return post_dict
+        enriched = await self._enrich_posts([post], current_user_id)
+        return enriched[0] if enriched else None
 
     async def update_post(self, post_id: UUID, user_id: UUID, content: str) -> Post | None:
         # コンテンツフィルタリング - temporarily disabled due to banned_words table schema issue
@@ -155,26 +134,31 @@ class PostService:
             .options(selectinload(Post.user))
             .order_by(Post.created_at)  # type: ignore
         )
-        replies = result.scalars().all()
+        replies = list(result.scalars().all())
 
-        # Convert to dict and add like status
-        reply_list = []
+        if not replies:
+            return []
+
+        reply_ids = [r.id for r in replies]
+
+        # バッチでいいね状態を取得
+        if current_user_id:
+            liked_reply_ids = await self.like_repository.get_liked_reply_ids(
+                current_user_id, reply_ids
+            )
+        else:
+            liked_reply_ids = set()
+
+        reply_list: list[dict[str, Any]] = []
         for reply in replies:
             reply_dict = reply.model_dump()
 
-            # Add user info
             if reply.user:
                 reply_dict["user"] = reply.user.model_dump()
             else:
                 reply_dict["user"] = None
 
-            # Add like status
-            if current_user_id:
-                reply_dict["is_liked"] = await self.like_service.is_reply_liked(current_user_id, reply.id)
-            else:
-                reply_dict["is_liked"] = False
-
-            # Add has_replies flag
+            reply_dict["is_liked"] = reply.id in liked_reply_ids
             reply_dict["has_replies"] = (reply.replies_count or 0) > 0
 
             reply_list.append(reply_dict)
@@ -193,27 +177,31 @@ class PostService:
             cursor_datetime = datetime.fromisoformat(cursor)
 
         posts, next_cursor = await self.repository.get_user_posts(user_id, cursor_datetime, limit)
+        enriched = await self._enrich_posts(posts, current_user_id)
+        return enriched, next_cursor
 
-        # Postオブジェクトを辞書に変換し、いいね状態を追加
-        result = []
+    async def _enrich_posts(
+        self, posts: Sequence[Post], current_user_id: UUID | None
+    ) -> list[dict[str, Any]]:
+        """投稿リストにユーザー情報・いいね状態・リプライ数を追加するバッチ版共通ヘルパー"""
+        if not posts:
+            return []
+
+        post_ids = [p.id for p in posts]
+
+        if current_user_id:
+            liked_ids = await self.like_repository.get_liked_post_ids(current_user_id, post_ids)
+        else:
+            liked_ids = set()
+
+        reply_counts = await self.repository.get_reply_counts(post_ids)
+
+        result: list[dict[str, Any]] = []
         for post in posts:
             post_dict = post.model_dump()
-
-            # ユーザー情報を手動で追加
-            if post.user:
-                post_dict["user"] = post.user.model_dump()
-            else:
-                post_dict["user"] = None
-
-            # いいね状態を追加
-            if current_user_id:
-                post_dict["is_liked"] = await self.like_service.is_liked(current_user_id, post.id)
-            else:
-                post_dict["is_liked"] = False
-
-            # リプライ数を追加
-            post_dict["replies_count"] = await self._get_replies_count(post.id)
-
+            post_dict["user"] = post.user.model_dump() if post.user else None
+            post_dict["is_liked"] = post.id in liked_ids
+            post_dict["replies_count"] = reply_counts.get(post.id, 0)
             result.append(post_dict)
 
-        return result, next_cursor
+        return result

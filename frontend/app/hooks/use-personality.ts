@@ -101,8 +101,9 @@ export function useUserPersonalityResult(userId: string) {
           `/api/v1/personality/users/${userId}`
         );
         return response.data;
-      } catch (error: any) {
-        if (error?.response?.status === 404) {
+      } catch (error: unknown) {
+        const err = error as { response?: { status?: number }; status?: number };
+        if (err?.response?.status === 404 || err?.status === 404) {
           return null; // 診断結果がない場合
         }
         throw error;

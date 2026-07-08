@@ -3,7 +3,6 @@ from enum import StrEnum
 from typing import TYPE_CHECKING, Optional
 from uuid import UUID, uuid4
 
-from sqlalchemy import Column
 from sqlmodel import Field, Relationship, SQLModel
 
 if TYPE_CHECKING:
@@ -51,10 +50,7 @@ class ReportBase(SQLModel):
     reviewer_comment: str | None = Field(default=None, max_length=1000)
 
     created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(
-        default_factory=datetime.utcnow,
-        sa_column=Column(default=datetime.utcnow, onupdate=datetime.utcnow),
-    )
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
 
 
 class Report(ReportBase, table=True):

@@ -1,14 +1,17 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { createClient } from '@/lib/supabase/client';
 import { Reply } from '@/types';
-import { getPost } from '@/lib/api/generated/endpoints/posts/posts';
+import { getPost, deletePost } from '@/lib/api/generated/endpoints/posts/posts';
 
+/**
+ * queryKey 統一規約:
+ *   ['reply', replyId]
+ */
 export const useReplyDetail = (replyId: string) => {
   const queryClient = useQueryClient();
   const [optimisticReply] = useState<Reply | null>(null);
 
-  // Fetch reply using generated API client
+  // Fetch reply
   const {
     data: reply,
     isLoading,
@@ -17,47 +20,25 @@ export const useReplyDetail = (replyId: string) => {
   } = useQuery({
     queryKey: ['reply', replyId],
     queryFn: async () => {
-      const supabase = createClient();
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      const response = await getPost(replyId, {
-        headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {},
-      });
-
+      const response = await getPost(replyId);
       if (response.status !== 200) {
         throw new Error('Failed to fetch reply');
       }
-
+      const data = response.data as unknown as Record<string, unknown>;
       return {
-        ...response.data,
-        post_id: response.data.root_id || '', // Map root_id to post_id for compatibility
-      } as Reply;
+        ...data,
+        post_id: (data.root_id as string | undefined) || '', // Map root_id to post_id for compatibility
+      } as unknown as Reply;
     },
     enabled: !!replyId,
-    staleTime: 0,
-    gcTime: 0,
-    refetchOnMount: 'always',
-    refetchOnWindowFocus: true,
+    staleTime: 30_000,
   });
 
   // Delete reply mutation
   const deleteReplyMutation = useMutation({
     mutationFn: async () => {
-      const supabase = createClient();
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      const response = await fetch(`/api/v1/posts/${replyId}`, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${session?.access_token}`,
-        },
-      });
-
-      if (!response.ok) {
+      const response = await deletePost(replyId);
+      if (response.status >= 300) {
         throw new Error('Failed to delete reply');
       }
     },

@@ -36,6 +36,7 @@ export default function SettingsPage() {
   const deleteAccountMutation = useDeleteAccountApiV1ApiV1AccountDelete({
     mutation: {
       onSuccess: async (response) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         if ((response as any).data?.success) {
           await signOut();
           router.push('/');
@@ -104,21 +105,29 @@ export default function SettingsPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-gray-500">投稿数</p>
-                  <p className="text-2xl font-bold">{(summary as any)?.data?.posts_count || 0}</p>
+                  <p className="text-2xl font-bold">
+                    {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                    {(summary as any)?.data?.posts_count || 0}
+                  </p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">リプライ数</p>
-                  <p className="text-2xl font-bold">{(summary as any)?.data?.replies_count || 0}</p>
+                  <p className="text-2xl font-bold">
+                    {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                    {(summary as any)?.data?.replies_count || 0}
+                  </p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">フォロワー</p>
                   <p className="text-2xl font-bold">
+                    {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                     {(summary as any)?.data?.followers_count || 0}
                   </p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">フォロー中</p>
                   <p className="text-2xl font-bold">
+                    {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                     {(summary as any)?.data?.following_count || 0}
                   </p>
                 </div>

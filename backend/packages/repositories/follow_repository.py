@@ -43,8 +43,10 @@ class FollowRepository:
     async def get_followers(
         self, user_id: UUID, cursor: str | None = None, limit: int = 20
     ) -> tuple[list[User], str | None]:
+        # User と Follow を join して1クエリで取得する。
+        # 次カーソル用に Follow.created_at も同時に取得しておく。
         query = (
-            select(User)
+            select(User, Follow.created_at)
             .join(Follow, Follow.follower_id == User.id)
             .where(Follow.following_id == user_id)
             .order_by(Follow.created_at.desc(), User.id)
@@ -60,29 +62,23 @@ class FollowRepository:
 
         query = query.limit(limit + 1)
         result = await self.session.execute(query)
-        users = result.scalars().all()
+        rows = result.all()
 
         next_cursor = None
-        if len(users) > limit:
-            users = users[:-1]
-            if users:
-                last_user = users[-1]
-                # Get the follow relationship for cursor
-                follow_result = await self.session.execute(
-                    select(Follow).where(
-                        and_(Follow.follower_id == last_user.id, Follow.following_id == user_id)
-                    )
-                )
-                follow = follow_result.scalar_one()
-                next_cursor = f"{follow.created_at.isoformat()}_{last_user.id}"
+        if len(rows) > limit:
+            rows = rows[:-1]
+            if rows:
+                last_user, last_created_at = rows[-1]
+                next_cursor = f"{last_created_at.isoformat()}_{last_user.id}"
 
-        return list(users), next_cursor
+        users = [row[0] for row in rows]
+        return users, next_cursor
 
     async def get_following(
         self, user_id: UUID, cursor: str | None = None, limit: int = 20
     ) -> tuple[list[User], str | None]:
         query = (
-            select(User)
+            select(User, Follow.created_at)
             .join(Follow, Follow.following_id == User.id)
             .where(Follow.follower_id == user_id)
             .order_by(Follow.created_at.desc(), User.id)
@@ -97,22 +93,17 @@ class FollowRepository:
 
         query = query.limit(limit + 1)
         result = await self.session.execute(query)
-        users = result.scalars().all()
+        rows = result.all()
 
         next_cursor = None
-        if len(users) > limit:
-            users = users[:-1]
-            if users:
-                last_user = users[-1]
-                follow_result = await self.session.execute(
-                    select(Follow).where(
-                        and_(Follow.follower_id == user_id, Follow.following_id == last_user.id)
-                    )
-                )
-                follow = follow_result.scalar_one()
-                next_cursor = f"{follow.created_at.isoformat()}_{last_user.id}"
+        if len(rows) > limit:
+            rows = rows[:-1]
+            if rows:
+                last_user, last_created_at = rows[-1]
+                next_cursor = f"{last_created_at.isoformat()}_{last_user.id}"
 
-        return list(users), next_cursor
+        users = [row[0] for row in rows]
+        return users, next_cursor
 
     async def increment_follow_counts(self, follower_id: UUID, following_id: UUID) -> None:
         # Increment following_count for follower

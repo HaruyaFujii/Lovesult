@@ -1,9 +1,11 @@
 from datetime import datetime
+from typing import Any
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from packages.models.user import UserStatus
+from packages.repositories.like_repository import LikeRepository
 from packages.repositories.post_repository import PostRepository
 from packages.repositories.user_repository import UserRepository
 from packages.services.like_service import LikeService
@@ -13,6 +15,7 @@ class SearchService:
     def __init__(self, session: AsyncSession):
         self.post_repository = PostRepository(session)
         self.user_repository = UserRepository(session)
+        self.like_repository = LikeRepository(session)
         self.like_service = LikeService(session)
 
     async def search_posts(
@@ -23,7 +26,7 @@ class SearchService:
         current_user_id: UUID | None = None,
         cursor: str | None = None,
         limit: int = 20,
-    ) -> tuple[list[dict], str | None]:
+    ) -> tuple[list[dict[str, Any]], str | None]:
         """
         投稿を検索する
 
@@ -52,23 +55,23 @@ class SearchService:
             limit=limit,
         )
 
-        # いいね・ブックマーク状態を追加
-        result = []
+        # いいね状態をバッチで取得
+        post_ids = [p.id for p in posts]
+        if current_user_id and post_ids:
+            liked_ids = await self.like_repository.get_liked_post_ids(current_user_id, post_ids)
+        else:
+            liked_ids = set()
+
+        result: list[dict[str, Any]] = []
         for post in posts:
             post_dict = post.model_dump()
 
-            # ユーザー情報を追加
             if post.user:
                 post_dict["user"] = post.user.model_dump()
             else:
                 post_dict["user"] = None
 
-            # いいね・ブックマーク状態を追加
-            if current_user_id:
-                post_dict["is_liked"] = await self.like_service.is_liked(current_user_id, post.id)
-            else:
-                post_dict["is_liked"] = False
-
+            post_dict["is_liked"] = post.id in liked_ids
             result.append(post_dict)
 
         return result, next_cursor
@@ -81,7 +84,7 @@ class SearchService:
         current_user_id: UUID | None = None,
         cursor: str | None = None,
         limit: int = 20,
-    ) -> tuple[list[dict], str | None]:
+    ) -> tuple[list[dict[str, Any]], str | None]:
         """
         ユーザーを検索する
 
@@ -111,7 +114,7 @@ class SearchService:
         )
 
         # ユーザー情報を辞書形式に変換
-        result = []
+        result: list[dict[str, Any]] = []
         for user in users:
             user_dict = user.model_dump()
             result.append(user_dict)

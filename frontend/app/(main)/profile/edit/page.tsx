@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
@@ -10,18 +10,7 @@ import { User, UserStatus, Gender, AgeRange } from '@/types';
 export default function ProfileEditPage() {
   const { user } = useAuth();
   const router = useRouter();
-  const queryClient = useQueryClient();
-
-  const [nickname, setNickname] = useState('');
-  const [status, setStatus] = useState<UserStatus>('SEEKING');
-  const [gender, setGender] = useState<Gender>('PRIVATE');
-  const [ageRange, setAgeRange] = useState<AgeRange>('TWENTIES');
-  const [bio, setBio] = useState('');
-  const [error, setError] = useState('');
-
-  // Orvalで生成されたフックを使用
   const { data: profileData } = useCurrentUser(!!user);
-  const updateProfileMutation = useUpdateProfile();
 
   useEffect(() => {
     if (!user) {
@@ -30,22 +19,31 @@ export default function ProfileEditPage() {
     }
   }, [user, router]);
 
-  const initializedRef = useRef(false);
+  if (!profileData) {
+    return (
+      <div className="max-w-2xl mx-auto">
+        <div className="bg-white shadow rounded-lg p-6 text-center text-gray-500">
+          読み込み中...
+        </div>
+      </div>
+    );
+  }
 
-  // プロフィールデータが読み込まれた時にフォームに設定
-  useEffect(() => {
-    if (profileData && !initializedRef.current) {
-      // 実際のレスポンスは直接ユーザーオブジェクトが返される
-      const profile = profileData as User;
+  return <ProfileEditForm profile={profileData as User} />;
+}
 
-      setNickname(profile.nickname || '');
-      setStatus(profile.status || 'SEEKING');
-      setGender(profile.gender || 'PRIVATE');
-      setAgeRange(profile.age_range || 'TWENTIES');
-      setBio(profile.bio || '');
-      initializedRef.current = true;
-    }
-  }, [profileData]);
+function ProfileEditForm({ profile }: { profile: User }) {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+
+  const [nickname, setNickname] = useState(profile.nickname || '');
+  const [status, setStatus] = useState<UserStatus>(profile.status || 'SEEKING');
+  const [gender, setGender] = useState<Gender>(profile.gender || 'PRIVATE');
+  const [ageRange, setAgeRange] = useState<AgeRange>(profile.age_range || 'TWENTIES');
+  const [bio, setBio] = useState(profile.bio || '');
+  const [error, setError] = useState('');
+
+  const updateProfileMutation = useUpdateProfile();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,9 +61,9 @@ export default function ProfileEditPage() {
       await updateProfileMutation.mutateAsync(profileData);
 
       // キャッシュを無効化してプロフィール表示ページで最新データを取得
-      await queryClient.invalidateQueries({ queryKey: ['/api/v1/users/me'] });
+      await queryClient.invalidateQueries({ queryKey: ['currentUser'] });
       // さらに強制的にリフェッチ
-      await queryClient.refetchQueries({ queryKey: ['/api/v1/users/me'] });
+      await queryClient.refetchQueries({ queryKey: ['currentUser'] });
 
       router.push('/profile');
     } catch (error) {
